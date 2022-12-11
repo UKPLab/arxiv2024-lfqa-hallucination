@@ -1,0 +1,14 @@
+# inception data
+srv
+docker-compose.yml
+inception-app-webapp-25.2-standalone.jar
+
+
+# sensitive data
+src/data/human_annotations
+.env
+
+
+# code and cache
+.idea
+**__pycache__

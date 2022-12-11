@@ -1,0 +1,4 @@
+## The following requirements were added by pip freeze:
+dkpro-cassis==0.7.3
+inceptalytics==0.1.1
+wordcloud==1.8.2.2
