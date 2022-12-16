@@ -42,8 +42,8 @@ def get_annotations(file_path, layer, feature=None):
 
 
 if __name__ == '__main__':
-    _layer = "webanno.custom.Questionmisconception"
-    feature = ' ReasonforfalseassumptionmisconceptionGivereferencesifnecessary'
+    _layer = "webanno.custom.Hardtounderstand"
+    feature = "Reasonfordifficulty"
     df = get_annotations("data/lfqa-pilot-v2.zip", _layer, feature=feature)
     print(df.head())
-    df.to_csv("data/human_annotations/pilot_results/lfqa-pilot-misconception.csv")
+    df.to_csv("./data/pilot_results_v2/lfqa-pilot-hard.csv", sep="\t")

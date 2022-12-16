@@ -62,7 +62,7 @@ def annotations(file):
 
 
 def analyze_results(path):
-    df = pd.read_csv(path+"raw_results.csv", sep="|", index_col=0)
+    df = pd.read_csv(path+"lfqa-pilot-answer-preference-with-labels.csv", sep="\t", index_col=0)
     annotators = df.annotator.unique()
 
     annotator_1_pref = df.query('annotator == @annotators[0]').preference.values
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # file = "data/lfqa-pilot-v2.zip"
     # # get annotations
     # annotations = annotations(file)
-    # annotations.to_csv("./data/pilot_annotations.csv", sep="|", index=True)
+    # annotations.to_csv("./data/pilot_results_v2/lfqa-pilot-answer-preference.csv", sep="\t", index=True)
 
-    filepath = './data/human_annotations/'
+    filepath = './data/pilot_results_v2/'
     analyze_results(filepath)

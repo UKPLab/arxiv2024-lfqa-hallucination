@@ -75,7 +75,7 @@ def convert_jsonl_to_text(file_path, file_name, version):
 
 
 def collate_results(path):
-    metadatda = path + "gpt3/biology/v1/metadata.json"
+    metadatda = "src/data/human_annotations/gpt3/biology/v1/metadata.json"
     with open(metadatda, "r") as file:
         meta = json.load(file)
 
@@ -84,18 +84,18 @@ def collate_results(path):
     meta_df.columns = ["answer_1", "answer_2", "source_file"]
     meta_df["source_file"] = meta_df["source_file"] + ".txt"
     print(meta_df)
-    annotations = path + "pilot_annotations.csv"
-    annotations_df = pd.read_csv(annotations, sep="|")
+    annotations = path + "lfqa-pilot-answer-preference.csv"
+    annotations_df = pd.read_csv(annotations, sep="\t")
     print(annotations_df.head())
 
     results_df = pd.merge(annotations_df, meta_df, on="source_file")
     print(results_df)
-    results_df.to_csv(path+"raw_results.csv", sep="|")
+    results_df.to_csv(path+"lfqa-pilot-answer-preference-with-labels.csv", sep="\t")
 
 
 
 if __name__ == '__main__':
-    filepath = 'src/data/human_annotations/'
+    filepath = 'src/data/pilot_results_v2/'
     file_name = 'Biology_gpt3_2shot_knn_revised.jsonl'
     # convert_excel_to_text(filepath, file_name)
     # convert_jsonl_to_text(filepath, file_name, version='v2')
