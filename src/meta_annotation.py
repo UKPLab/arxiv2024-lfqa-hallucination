@@ -58,6 +58,18 @@ def annotations(file):
     columns = [features[0].lower(), features[1].lower(), 'source_file', 'annotator']
     index = ['source_file', 'annotator']
     annotations = pd.DataFrame(entries, columns=columns).set_index(index)
+    # change column names
+    if 'reason' in annotations.columns:
+        annotations = annotations.rename(columns={'reason': 'ans_preference_reason'})
+    if 'preference' in annotations.columns:
+        annotations = annotations.rename(columns={'preference': 'ans_preference'})
+
+    # convert preference and reason to list of strings
+    # annotations['ans_preference'] = annotations['ans_preference'].apply(lambda x: [x])
+    # annotations['ans_preference_reason'] = annotations['ans_preference_reason'].apply(lambda x: [x])
+    #
+    # # group by source_file and annotator
+    # annotations = annotations.groupby(['source_file', 'annotator']).agg({'ans_preference': 'sum', 'ans_preference_reason': 'sum'})
     return annotations
 
 
@@ -127,10 +139,10 @@ def analyze_results(path):
 
 
 if __name__ == '__main__':
-    # file = "data/lfqa-pilot-v2.zip"
-    # # get annotations
-    # annotations = annotations(file)
-    # annotations.to_csv("./data/pilot_results_v2/lfqa-pilot-answer-preference.csv", sep="\t", index=True)
+    file = "data/lfqa-pilot-v2.zip"
+    # get annotations
+    annotations = annotations(file)
+    annotations.to_csv("./data/pilot_results_v4/lfqa_pilot_answer_preference.csv", sep="\t", index=True)
 
-    filepath = './data/pilot_results_v2/'
-    analyze_results(filepath)
+    # filepath = './data/pilot_results_v2/'
+    # analyze_results(filepath)
