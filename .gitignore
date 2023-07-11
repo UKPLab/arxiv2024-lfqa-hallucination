@@ -6,6 +6,9 @@ inception-app-webapp-25.2-standalone.jar
 
 # sensitive data
 src/data/human_annotations
+src/data/lfqa-*
+src/data/plots
+src/data/prolific
 .env
 
 

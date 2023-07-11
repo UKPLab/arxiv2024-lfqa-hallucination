@@ -46,7 +46,7 @@ def convert_jsonl_to_text(file_path, file_name, version):
         example = json.loads(data[i])
         question = f"QUESTION:\n{example['question_text'].capitalize()}".replace('<br />', '\n').replace('\r', '')
         random_no = random.randint(1, 2)
-        human_answer = f"ANSWER{random_no}:\n{example['human_answer'].capitalize()}".replace('<br />', '\n').replace(
+        human_answer = f"ANSWER{random_no}:\n{example['human_ans'].capitalize()}".replace('<br />', '\n').replace(
             '\r', '')
         save_path = file_path + file_name.split('_')[1].lower() + "/" + file_name.split('_')[0].lower() + "/"
         # print(save_path)
@@ -57,14 +57,63 @@ def convert_jsonl_to_text(file_path, file_name, version):
 
         unique_id = str(uuid.uuid4())
         if random_no == 1:
-            model_answer = f"ANSWER2:\n{example['model_answer'].capitalize()}".replace('<br />', '\n').replace('\r', '')
+            model_answer = f"ANSWER2:\n{example['zero_shot_ans'].capitalize()}".replace('<br />', '\n').replace('\r', '')
             with open(save_path + unique_id + '.txt', 'w') as f:
                 f.write(question + '\n\n' + human_answer + '\n\n'+ question +'\n\n'+ model_answer)
             # save metadata
             metadata = {unique_id: {"Answer1": "human_answer", "Answer2": "model_answer"}}
         else:
-            model_answer = f"ANSWER1:\n{example['model_answer'].capitalize()}".replace('<br />', '\n').replace('\r', '')
+            model_answer = f"ANSWER1:\n{example['zero_shot_ans'].capitalize()}".replace('<br />', '\n').replace('\r', '')
             with open(save_path + unique_id + '.txt', 'w') as f:
+                f.write(question + '\n\n' + model_answer + '\n\n'+ question +'\n\n'+ human_answer)
+            # save metadata
+            metadata = {unique_id: {"Answer1": "model_answer", "Answer2": "human_answer"}}
+
+        data_config.append(metadata)
+        # break
+    # print(data_config)
+    with open(save_path + 'metadata.json', 'w') as f:
+        json.dump(data_config, fp=f, indent=4)
+
+
+def convert_jsonl(file_path, file_name, version):
+    """
+    Converts a jsonl file to a text file
+    :param file_path:
+    :param file_name:
+    :return:
+    """
+    with open(file_path+file_name, 'r') as f:
+        data = f.readlines()
+    documents = [f"{file_name.replace('.jsonl', str('_')+str(i+1)+'.txt')}"
+                 for i in range(len(data))]
+    data_config = []
+    for i in range(len(data)):
+        example = json.loads(data[i])
+        prompt = example["prompt"]
+        question = prompt.split("\n\n")[1].replace("Question: ", "")
+        print(question)
+        question = f"QUESTION:\n{question.capitalize()}".replace('<br />', '\n').replace('\r', '')
+        random_no = random.randint(1, 2)
+        human_answer = f"ANSWER{random_no}:\n{example['human_ans'].capitalize()}".replace('<br />', '\n').replace(
+            '\r', '')
+        save_path = file_path + file_name.split('_')[1].lower() + "/" + file_name.split('_')[0].lower() + "/"
+        # print(save_path)
+        if version:
+            save_path += version+"/"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        unique_id = str(uuid.uuid4())
+        if random_no == 1:
+            model_answer = f"ANSWER2:\n{example['zero_shot_ans'].capitalize()}".replace('<br />', '\n').replace('\r', '')
+            with open(save_path + f"{i}_" + unique_id + '.txt', 'w') as f:
+                f.write(question + '\n\n' + human_answer + '\n\n'+ question +'\n\n'+ model_answer)
+            # save metadata
+            metadata = {unique_id: {"Answer1": "human_answer", "Answer2": "model_answer"}}
+        else:
+            model_answer = f"ANSWER1:\n{example['zero_shot_ans'].capitalize()}".replace('<br />', '\n').replace('\r', '')
+            with open(save_path + f"{i}_" + unique_id + '.txt', 'w') as f:
                 f.write(question + '\n\n' + model_answer + '\n\n'+ question +'\n\n'+ human_answer)
             # save metadata
             metadata = {unique_id: {"Answer1": "model_answer", "Answer2": "human_answer"}}
@@ -156,6 +205,7 @@ def collate_annotations(path):
         labels = []
         if row[feature_name] != "":
             for idx, pos in enumerate(ast.literal_eval(row[feature_name])):
+                print(row)
                 if pos < ast.literal_eval(row["ques_start"])[1]:
                     labels.append(f"{label_name}1")
                 else:
@@ -193,10 +243,12 @@ def collate_annotations(path):
 
 
 if __name__ == '__main__':
-    save_path = 'src/data/pilot_results_v4/'
-    data_path = 'src/data/human_annotations/gpt3/biology/v1/'
-    file_name = 'Biology_gpt3_2shot_knn_revised.jsonl'
+    # save_path = 'src/data/prolific/pilot_results_bio_tud/'
+    filepath = 'src/data/human_annotations/gpt4/tech/'
+    file_name = 'Technology_zero_shot_2023-05-28.jsonl'
     # convert_excel_to_text(filepath, file_name)
-    # convert_jsonl_to_text(filepath, file_name, version='v2')
+    convert_jsonl(filepath, file_name, version='v0')
+    # data_path = 'src/data/human_annotations/gpt3/biology/davinci003/biology/v0/'
+    # data_path = 'src/data/human_annotations/gpt3/economics/davinci003/economics/v0/'
     # collate_metadata(data_path, save_path)
-    collate_annotations(save_path)
+    # collate_annotations(save_path)

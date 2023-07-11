@@ -14,22 +14,29 @@ def _load_project(file):
     feature = 'Reason'
     feature_path = f'{preference_layer}'
 
-    source_files = ["00f64ae1-c96a-4b2e-9912-c40e295e2565.txt", "02062ffd-f0bb-4566-847c-fc7057d4ce0b.txt",
-                    "02408398-02c5-4afc-866d-4225e869d49a.txt", "0242d81a-2c1b-4021-9aa1-c5cfcf38a784.txt",
-                    "031d790a-7d9d-498e-a36d-a28eaca304ac.txt", "03235d4c-dcb0-4cac-8dc2-5d17b072f5ac.txt",
-                    "037f220f-7797-4b35-bcf0-201336c4127b.txt", "03804547-6f04-472b-82fc-bf073985dfc2.txt",
-                    "03fd2c88-e3e9-4ba5-8641-fa7814df6b08.txt", "04ac3833-c4d7-4bcb-a3f4-f133819ef4df.txt",
-                    "059fa085-f357-478a-83c1-fc5933bbad6a.txt", "05b4333c-1c42-4ede-b62c-830c38cbfea2.txt",
-                    "06210903-a207-4171-901b-45d89165bec3.txt", "0725d873-e32c-4c8e-bbcf-8e3eb6a8a0cd.txt",
-                    "075398ee-9f9f-4ff7-97aa-7d0315844130.txt"]
-    annotators = ['rachneet', 'yixiao']
+    # source_files = ["00f64ae1-c96a-4b2e-9912-c40e295e2565.txt", "02062ffd-f0bb-4566-847c-fc7057d4ce0b.txt",
+    #                 "02408398-02c5-4afc-866d-4225e869d49a.txt", "0242d81a-2c1b-4021-9aa1-c5cfcf38a784.txt",
+    #                 "031d790a-7d9d-498e-a36d-a28eaca304ac.txt", "03235d4c-dcb0-4cac-8dc2-5d17b072f5ac.txt",
+    #                 "037f220f-7797-4b35-bcf0-201336c4127b.txt", "03804547-6f04-472b-82fc-bf073985dfc2.txt",
+    #                 "03fd2c88-e3e9-4ba5-8641-fa7814df6b08.txt", "04ac3833-c4d7-4bcb-a3f4-f133819ef4df.txt",
+    #                 "059fa085-f357-478a-83c1-fc5933bbad6a.txt", "05b4333c-1c42-4ede-b62c-830c38cbfea2.txt",
+    #                 "06210903-a207-4171-901b-45d89165bec3.txt", "0725d873-e32c-4c8e-bbcf-8e3eb6a8a0cd.txt",
+    #                 "075398ee-9f9f-4ff7-97aa-7d0315844130.txt"]
+    source_files = [file for file in project.source_file_names if not file.__contains__("completion.txt")]
+    annotators = ['U3I1rvU52xrOWLEnDh994Q', 'IYb9xb6gp9-A7SPZuG71pA']
     annotations = annotation_info_from_xmi_zip(file)
 
     return {"layer": preference_layer, "features": features, "annotations": annotations,
-            "source_files": source_files, "annotators": annotators}
+            "source_files": source_files,
+            "annotators": annotators}
 
 
 def annotations(file):
+    """
+    Function to get the answer preferences of annotators
+    :param file: project file
+    :return:
+    """
 
     project = _load_project(file)
     annotators = project["annotators"]
@@ -74,22 +81,24 @@ def annotations(file):
 
 
 def analyze_results(path):
-    df = pd.read_csv(path+"lfqa-pilot-answer-preference-with-labels.csv", sep="\t", index_col=0)
+    df = pd.read_csv(path+"lfqa_pilot_answer_preference_with_labels.csv", sep="\t", index_col=0)
     annotators = df.annotator.unique()
+    print(annotators)
 
-    annotator_1_pref = df.query('annotator == @annotators[0]').preference.values
-    annotator_2_pref = df.query('annotator == @annotators[1]').preference.values
-    # annotator 1 to binary
-    annotator_1_pref = [1 if x == 'Answer 1' else 0 for x in annotator_1_pref]
-    # annotator 2 to binary
-    annotator_2_pref = [1 if x == 'Answer 1' else 0 for x in annotator_2_pref]
-    from sklearn.metrics import cohen_kappa_score
-    kappa = cohen_kappa_score(annotator_1_pref, annotator_2_pref)
-    print("The IAA is: ", kappa)
+    # annotator_1_pref = df.query('annotator == @annotators[0]').ans_preference.values
+    # annotator_2_pref = df.query('annotator == @annotators[1]').ans_preference.values
+
+    # # annotator 1 to binary
+    # annotator_1_pref = [1 if x == 'Answer 1' else 0 for x in annotator_1_pref]
+    # # annotator 2 to binary
+    # annotator_2_pref = [1 if x == 'Answer 1' else 0 for x in annotator_2_pref]
+    # from sklearn.metrics import cohen_kappa_score
+    # kappa = cohen_kappa_score(annotator_1_pref, annotator_2_pref)
+    # print("The IAA is: ", kappa)
 
     df["true_answer"] = None
-    df.loc[df["preference"] == "Answer 1", "true_answer"] = df["answer_1"]
-    df.loc[df["preference"] == "Answer 2", "true_answer"] = df["answer_2"]
+    df.loc[df["ans_preference"] == "Answer 1", "true_answer"] = df["ans1_label"]
+    df.loc[df["ans_preference"] == "Answer 2", "true_answer"] = df["ans2_label"]
 
     num_annotations = int(df.shape[0]/len(annotators))
     human_selection = list(df.groupby(["annotator"])["true_answer"].apply(lambda x: x[x.str.contains('human')].count()).values)
@@ -139,10 +148,11 @@ def analyze_results(path):
 
 
 if __name__ == '__main__':
-    file = "data/lfqa-pilot-v2.zip"
-    # get annotations
-    annotations = annotations(file)
-    annotations.to_csv("./data/pilot_results_v4/lfqa_pilot_answer_preference.csv", sep="\t", index=True)
+    # file = "src/data/lfqa-biology-tud.zip"
+    # # get annotations
+    # annotations = annotations(file)
+    # annotations.to_csv("./src/data/prolific/pilot_results_bio_tud/lfqa_pilot_answer_preference.csv", sep="\t", index=True)
 
-    # filepath = './data/pilot_results_v2/'
-    # analyze_results(filepath)
+    ## analysis
+    filepath = './src/data/prolific/pilot_results_bio_tud/'
+    analyze_results(filepath)
