@@ -9,6 +9,8 @@ src/data/human_annotations
 src/data/lfqa-*
 src/data/plots
 src/data/prolific
+src/data/projects
+src/data/scraped_eli5
 src/data/*.txt
 .env
 
