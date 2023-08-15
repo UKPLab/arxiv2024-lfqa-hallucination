@@ -125,9 +125,6 @@ def convert_jsonl(file_path, file_name, version):
         json.dump(data_config, fp=f, indent=4)
 
 
-
-
-
 if __name__ == '__main__':
     # save_path = './src/data/prolific/results_bio_tud_1/'
     filepath = './src/data/human_annotations/gpt4/history/'

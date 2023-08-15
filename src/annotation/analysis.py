@@ -94,9 +94,11 @@ class Annotation:
         # print(f"Source files: {source_files}")
         # biology
         # annotators = ['ALDTHTi6bdUV_PxRqESvew', 'ElEWCTeqc0gwYO7Ze9yW0Q', 'frFLqX9g5biFUM6tBMAoFA']
-        annotators = ['kx7IZQV_R_uhMxYEyuv-8w', '4E4KDglOHRxflovIhgyahA', '9qDy2dkwY13nFOeb_9EFwg']
+        # annotators = ['kx7IZQV_R_uhMxYEyuv-8w', '4E4KDglOHRxflovIhgyahA', '9qDy2dkwY13nFOeb_9EFwg']
         # economics
-        # annotators = ['U4U-HsGbDSjUjGsQYqwzCA', 'uCKTljvJIvpxenurEySxgA', 'Qp4YXOnvjo3VVadyDJRMAA']
+        # annotators = ['aAAgT5wo_9-I1uJpWeHZPA', 'n3-ljRxwKXnMTea1LVfhyQ']
+        # technology
+        annotators = ['kwrgq4M0bY2l3J8r4P7brg', 'fVN5PJgISNUiNDXP3zln0g', 'MU9gRbyEP9bXfoL5r5oudQ']
 
         # select reduced view
         reduced_annos = self.project.select(
@@ -385,8 +387,7 @@ def get_top_k_words(path, layer, k):
     ans_human = [ans_reason[idx] for idx, x in enumerate(choice) if "human" in x]
     ans_model = [ans_reason[idx] for idx, x in enumerate(choice) if "model" in x]
 
-
-    # # get the answer_preference_reason column
+    # get the answer_preference_reason column
     # ans_pref_reason = df['ans_preference_reason'].tolist()
     # print(f"Answer preference reason: {ans_pref_reason}")
     # get avg length of answer preference reason in words
@@ -407,7 +408,7 @@ def get_top_k_words(path, layer, k):
 
 if __name__ == '__main__':
     num_annotator = 3  # 1, 2 or 3
-    category = "biology"
+    category = "technology"
     annotate = Annotation(
         project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
         metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
