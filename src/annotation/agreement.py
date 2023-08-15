@@ -13,7 +13,7 @@ def fleissKappa(responses: List[List]):
     return kappa
 
 
-def annotator_agreement(category=None):
+def annotator_agreement(category=None, num_annotators=3):
     def convert_answers(response):
         if response == "Answer 1":
             return 1
@@ -21,7 +21,7 @@ def annotator_agreement(category=None):
             return 2
 
     dataframes = []
-    for annotator in range(1, 4):
+    for annotator in range(1, num_annotators+1):
         data_path = f"src/data/prolific/results_{category}_tud_{annotator}"
         df = pd.read_csv(
             os.path.join(data_path, "lfqa_pilot_complete.csv"),
@@ -50,7 +50,8 @@ def annotator_agreement(category=None):
 
 if __name__ == '__main__':
     response = annotator_agreement(
-        category="economics"
+        category="economics",
+        num_annotators=3
     )
     # print(response)
 
