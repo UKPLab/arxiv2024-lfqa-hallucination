@@ -1,8 +1,14 @@
-import plotly.express as px
 import plotly.graph_objects as go
+import plotly.express as px
 import pandas as pd
-import os
-from src.analysis import layer_wise_analysis
+from typing import List
+import matplotlib.pyplot as plt
+
+import plotly.io as pio
+pio.kaleido.scope.mathjax = None
+
+from src.annotation.analysis import layer_wise_analysis
+from src.annotation.agreement import calculate_answer_stats
 
 
 # code to plot a bar plot using plotly library
@@ -72,6 +78,66 @@ def plot_stacked_bar_plot(x, y1, y2, title, x_title, y_title, color, save_path):
     fig.write_image(save_path)
 
 
+def length_plot(category: List = [], num_annotators: int = 3):
+
+    dataframes = []
+    for i in range(len(category)):
+        if category[i] == "economics":
+            num_annotators = 2
+        data = calculate_answer_stats(
+            category=category[i],
+            num_annotators=num_annotators
+        )
+        data["category"] = [category[i].capitalize()]*len(data)
+        dataframes.append(data)
+
+    df = pd.concat(dataframes, ignore_index=True)
+
+    fig = go.Figure()
+    fig.add_trace(go.Violin(x=df["category"],
+                            y=df["human_ans_len"],
+                            legendgroup='Human', scalegroup='Human', name='Human',
+                            side='negative',
+                            line_color='blue')
+                  )
+    fig.add_trace(go.Violin(x=df["category"],
+                            y=df["model_ans_len"],
+                            legendgroup='Model', scalegroup='Model', name='Model',
+                            side='positive',
+                            line_color='orange')
+                  )
+    fig.update_traces(meanline_visible=True)
+    fig.update_layout(
+        violingap=0,
+        violinmode='overlay'
+       )
+    # fig.show()
+
+    fig.update_layout(
+        font=dict(family='Times New Roman', size=12, color='black'),
+        plot_bgcolor='white',  # Set plot background color
+        # showlegend=True,
+        legend=dict(
+            bgcolor='white',
+            bordercolor='black',
+            borderwidth=1
+        ),
+        xaxis=dict(title_font=dict(size=22, color='black'), ticks="outside", mirror=True, showline=True,
+                   linewidth=1.5,
+                   linecolor='black'),  # Optional: Move x-axis ticks outside
+        yaxis=dict(title_font=dict(size=22, color='black'), ticks="outside", mirror=True, showline=True,
+                   linewidth=1.5,
+                   linecolor='black', range=[0, 600]),  # Optional: Move y-axis ticks outside
+        yaxis_title="Answer length",
+    )
+    fig.update_layout(
+        legend=dict(orientation="v", yanchor="bottom", y=0.8, xanchor="center", x=0.20, font=dict(size=14), itemsizing="trace"))
+    fig.update_layout(width=500, height=400, template="ggplot2", margin=dict(t=10, b=10, r=10), )
+    pio.write_image(fig, "./src/data/plots/ans_length_stats.pdf")
+
+    # fig.show()
+
+
 if __name__ == '__main__':
     # counts = []
     # labels = []
@@ -85,9 +151,9 @@ if __name__ == '__main__':
     #         counts.append(num_annotations)
     #         labels.append(aspect)
 
-    path = "../data/prolific/pilot_results_eco_v0/lfqa_pilot_complete.csv"
-    # labels, counts, _ = layer_wise_analysis(path, "factuality")
-    labels, counts, ref_human_help, ref_model_help = layer_wise_analysis(path, "hard")
+    # path = "../data/prolific/pilot_results_eco_v0/lfqa_pilot_complete.csv"
+    # # labels, counts, _ = layer_wise_analysis(path, "factuality")
+    # labels, counts, ref_human_help, ref_model_help = layer_wise_analysis(path, "hard")
 
     # move first element in ref_human_help and ref_model_help to separate lists
     # ref_help = [ref_human_help[0], ref_model_help[0]]
@@ -95,8 +161,10 @@ if __name__ == '__main__':
 
     # df = pd.read_csv("data/annotations.csv")
     # plot the bar plot
-    plot_bar_plot(x=labels, y=counts, title="Hard to understand - Economics", x_title="Answer", y_title="Count",
-                  color="rgb(255, 127, 14)", save_path="../data/plots/hard_eco.svg")
+    # plot_bar_plot(x=labels, y=counts, title="Hard to understand - Economics", x_title="Answer", y_title="Count",
+    #               color="rgb(255, 127, 14)", save_path="../data/plots/hard_eco.svg")
     # plot_stacked_bar_plot(x=labels, y1=ref_help, y2=ref_no_help,
     #                       title="Reference - Economics", x_title="Answer", y_title="Helpful count",
     #                       color="rgb(255, 127, 14)", save_path="../data/plots/ref_eco_help.svg")
+
+    length_plot(category=["biology", "technology", "economics"], num_annotators=3)

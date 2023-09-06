@@ -96,9 +96,9 @@ class Annotation:
         # annotators = ['ALDTHTi6bdUV_PxRqESvew', 'ElEWCTeqc0gwYO7Ze9yW0Q', 'frFLqX9g5biFUM6tBMAoFA']
         # annotators = ['kx7IZQV_R_uhMxYEyuv-8w', '4E4KDglOHRxflovIhgyahA', '9qDy2dkwY13nFOeb_9EFwg']
         # economics
-        # annotators = ['aAAgT5wo_9-I1uJpWeHZPA', 'n3-ljRxwKXnMTea1LVfhyQ']
+        annotators = ['aAAgT5wo_9-I1uJpWeHZPA', 'n3-ljRxwKXnMTea1LVfhyQ']
         # technology
-        annotators = ['kwrgq4M0bY2l3J8r4P7brg', 'fVN5PJgISNUiNDXP3zln0g', 'MU9gRbyEP9bXfoL5r5oudQ']
+        # annotators = ['kwrgq4M0bY2l3J8r4P7brg', 'fVN5PJgISNUiNDXP3zln0g', 'MU9gRbyEP9bXfoL5r5oudQ']
 
         # select reduced view
         reduced_annos = self.project.select(
@@ -407,8 +407,8 @@ def get_top_k_words(path, layer, k):
 
 
 if __name__ == '__main__':
-    num_annotator = 3  # 1, 2 or 3
-    category = "technology"
+    num_annotator = 2  # 1, 2 or 3
+    category = "economics"
     annotate = Annotation(
         project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
         metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
