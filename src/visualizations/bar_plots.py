@@ -94,17 +94,21 @@ def length_plot(category: List = [], num_annotators: int = 3):
     df = pd.concat(dataframes, ignore_index=True)
 
     fig = go.Figure()
-    fig.add_trace(go.Violin(x=df["category"],
-                            y=df["human_ans_len"],
+    fig.add_trace(go.Violin(y=df["category"],
+                            x=df["human_ans_len"],
                             legendgroup='Human', scalegroup='Human', name='Human',
-                            side='negative',
-                            line_color='blue')
-                  )
-    fig.add_trace(go.Violin(x=df["category"],
-                            y=df["model_ans_len"],
-                            legendgroup='Model', scalegroup='Model', name='Model',
                             side='positive',
-                            line_color='orange')
+                            line_color='blue',
+                            orientation="h"
+                            )
+                  )
+    fig.add_trace(go.Violin(y=df["category"],
+                            x=df["model_ans_len"],
+                            legendgroup='Model', scalegroup='Model', name='Model',
+                            side='negative',
+                            line_color='orange',
+                            orientation="h"
+                            )
                   )
     fig.update_traces(meanline_visible=True)
     fig.update_layout(
@@ -122,18 +126,27 @@ def length_plot(category: List = [], num_annotators: int = 3):
             bordercolor='black',
             borderwidth=1
         ),
-        xaxis=dict(title_font=dict(size=22, color='black'), ticks="outside", mirror=True, showline=True,
-                   linewidth=1.5,
-                   linecolor='black'),  # Optional: Move x-axis ticks outside
-        yaxis=dict(title_font=dict(size=22, color='black'), ticks="outside", mirror=True, showline=True,
-                   linewidth=1.5,
-                   linecolor='black', range=[0, 600]),  # Optional: Move y-axis ticks outside
-        yaxis_title="Answer length",
+        xaxis=dict(
+            title_font=dict(size=22, color='black'),
+            ticks="outside", mirror=True, showline=True,
+            linewidth=1.5,
+            linecolor='black',
+            range=[0, 600]
+        ),  # Optional: Move x-axis ticks outside
+        yaxis=dict(
+            title_font=dict(size=22, color='black'),
+            ticks="outside", mirror=True, showline=True,
+            linewidth=1.5,
+            linecolor='black',
+        ),  # Optional: Move y-axis ticks outside
+        xaxis_title="Answer length",
     )
     fig.update_layout(
-        legend=dict(orientation="v", yanchor="bottom", y=0.8, xanchor="center", x=0.20, font=dict(size=14), itemsizing="trace"))
+        legend=dict(
+            orientation="v", yanchor="bottom", y=0.68, xanchor="center", x=0.85, font=dict(size=14), itemsizing="trace")
+        )
     fig.update_layout(width=500, height=400, template="ggplot2", margin=dict(t=10, b=10, r=10), )
-    pio.write_image(fig, "./src/data/plots/ans_length_stats.pdf")
+    pio.write_image(fig, "./src/data/plots/ans_length_stats_2.pdf")
 
     # fig.show()
 
