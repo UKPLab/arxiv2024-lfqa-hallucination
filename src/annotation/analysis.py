@@ -16,11 +16,12 @@ nltk.download('stopwords')
 
 
 class Annotation:
-    def __init__(self, project_path, metadata_path, save_path):
+    def __init__(self, project_path: str, metadata_path: str, save_path: str, include_pilot: bool = False):
         self.project = Project.from_zipped_xmi(project_path)
         self.annotations = annotation_info_from_xmi_zip(project_path)
         self.metadata_path = metadata_path
         self.save_path = save_path
+        self.include_pilot = include_pilot
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)
@@ -96,9 +97,13 @@ class Annotation:
         # annotators = ['ALDTHTi6bdUV_PxRqESvew', 'ElEWCTeqc0gwYO7Ze9yW0Q', 'frFLqX9g5biFUM6tBMAoFA']
         # annotators = ['kx7IZQV_R_uhMxYEyuv-8w', '4E4KDglOHRxflovIhgyahA', '9qDy2dkwY13nFOeb_9EFwg']
         # economics
-        annotators = ['aAAgT5wo_9-I1uJpWeHZPA', 'n3-ljRxwKXnMTea1LVfhyQ']
+        # annotators = ['aAAgT5wo_9-I1uJpWeHZPA', 'n3-ljRxwKXnMTea1LVfhyQ']
         # technology
         # annotators = ['kwrgq4M0bY2l3J8r4P7brg', 'fVN5PJgISNUiNDXP3zln0g', 'MU9gRbyEP9bXfoL5r5oudQ']
+        # history
+        # annotators = ['AGkXV-6WMCZZ3l1dsurIMw', 'SnW20QL9JIzRdyjyjtad_w', 'JWzVyjlYBh8RhaMtyQuiSg']
+        # law
+        annotators = ['v7nH1Yc31r6Jt7Ki7oumCw']  # ['uG7l6kUbTR6eRoKdp0-o8A']  # ['v7nH1Yc31r6Jt7Ki7oumCw'] #, ['9sWy5u1wI6mnDV6bz2GlOA']
 
         # select reduced view
         reduced_annos = self.project.select(
@@ -173,7 +178,7 @@ class Annotation:
         meta_df = pd.DataFrame(struct_meta)
         meta_df.columns = ["ans1_label", "ans2_label", "source_file"]
         meta_df["source_file"] = meta_df["source_file"] + ".txt"
-        annotations = os.path.join( self.save_path, "lfqa_pilot_answer_preference.csv")
+        annotations = os.path.join(self.save_path, "lfqa_pilot_answer_preference.csv")
         annotations_df = pd.read_csv(annotations, sep="\t")
         original_source_files = annotations_df.source_file.values
         # remove numbering to match with metadata
@@ -255,7 +260,8 @@ class Annotation:
 
         # create new columns with the tags
         df["ques_misconception_label"] = df.apply(_feature_labels, axis=1, args=("ques_misconception_end", "question"))
-        df["factuality_label"] = df.apply(_feature_labels, axis=1, args=("factuality_end", "answer"))
+        if "factuality_end" in df.columns.tolist():
+            df["factuality_label"] = df.apply(_feature_labels, axis=1, args=("factuality_end", "answer"))
         df["irrelevance_label"] = df.apply(_feature_labels, axis=1, args=("irrelevance_end", "answer"))
         # df["incomplete_ques_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ques_end", "question"))
         df["incomplete_ans_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ans_end", "answer"))
@@ -407,12 +413,12 @@ def get_top_k_words(path, layer, k):
 
 
 if __name__ == '__main__':
-    num_annotator = 2  # 1, 2 or 3
-    category = "economics"
+    num_annotator = "pilot"  # 2  # 1, 2 or 3
+    category = "law"
     annotate = Annotation(
         project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
         metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
-        save_path=f"src/data/prolific/results_{category}_tud_{num_annotator}"
+        save_path=f"src/data/prolific/results_{category}_tud_{num_annotator}_3"
     )
     annotate.main()
 
