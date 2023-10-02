@@ -127,10 +127,10 @@ def convert_jsonl(file_path, file_name, version):
 
 if __name__ == '__main__':
     # save_path = './src/data/prolific/results_bio_tud_1/'
-    filepath = './src/data/human_annotations/gpt4/history/'
-    file_name = 'History_zero_shot.jsonl'
+    filepath = './src/data/human_annotations/gpt4/physics/'
+    file_name = 'Physics_zero_shot.jsonl'
     # # convert_excel_to_text(filepath, file_name)
-    convert_jsonl(filepath, file_name, version='v0')
+    convert_jsonl(filepath, file_name, version='pilot')
     # data_path = 'src/data/human_annotations/gpt3/biology/zero/biology/v0/'
     # data_path = 'src/data/human_annotations/gpt4/biology/zero/biology/v0/'
     # collate_metadata(data_path, save_path)

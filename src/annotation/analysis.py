@@ -8,6 +8,7 @@ import ast
 import re
 import json
 import numpy as np
+from typing import List
 
 import nltk
 from nltk.corpus import stopwords
@@ -16,11 +17,19 @@ nltk.download('stopwords')
 
 
 class Annotation:
-    def __init__(self, project_path: str, metadata_path: str, save_path: str, include_pilot: bool = False):
+    def __init__(
+            self,
+            project_path: str,
+            metadata_path: str,
+            save_path: str,
+            annotator_idx: List,
+            include_pilot: bool = False
+    ):
         self.project = Project.from_zipped_xmi(project_path)
         self.annotations = annotation_info_from_xmi_zip(project_path)
         self.metadata_path = metadata_path
         self.save_path = save_path
+        self.annotator_idx = annotator_idx
         self.include_pilot = include_pilot
 
         if not os.path.exists(save_path):
@@ -93,22 +102,10 @@ class Annotation:
             feature_path = f'{layer}'
         source_files = [file for file in self.project.source_file_names if not file.__contains__("completion.txt")]
         # print(f"Source files: {source_files}")
-        # biology
-        # annotators = ['ALDTHTi6bdUV_PxRqESvew', 'ElEWCTeqc0gwYO7Ze9yW0Q', 'frFLqX9g5biFUM6tBMAoFA']
-        # annotators = ['kx7IZQV_R_uhMxYEyuv-8w', '4E4KDglOHRxflovIhgyahA', '9qDy2dkwY13nFOeb_9EFwg']
-        # economics
-        # annotators = ['aAAgT5wo_9-I1uJpWeHZPA', 'n3-ljRxwKXnMTea1LVfhyQ']
-        # technology
-        # annotators = ['kwrgq4M0bY2l3J8r4P7brg', 'fVN5PJgISNUiNDXP3zln0g', 'MU9gRbyEP9bXfoL5r5oudQ']
-        # history
-        # annotators = ['AGkXV-6WMCZZ3l1dsurIMw', 'SnW20QL9JIzRdyjyjtad_w', 'JWzVyjlYBh8RhaMtyQuiSg']
-        # law
-        annotators = ['v7nH1Yc31r6Jt7Ki7oumCw']  # ['uG7l6kUbTR6eRoKdp0-o8A']  # ['v7nH1Yc31r6Jt7Ki7oumCw'] #, ['9sWy5u1wI6mnDV6bz2GlOA']
-
         # select reduced view
         reduced_annos = self.project.select(
             annotation=feature_path,
-            annotators=annotators,
+            annotators=self.annotator_idx,
             source_files=source_files
         )
 
@@ -116,7 +113,7 @@ class Annotation:
             return self.answer_annotations(
                 layer=layer,
                 feature=feature,
-                annotators=annotators,
+                annotators=self.annotator_idx,
                 files=source_files,
             )
 
@@ -259,13 +256,17 @@ class Annotation:
             return labels
 
         # create new columns with the tags
-        df["ques_misconception_label"] = df.apply(_feature_labels, axis=1, args=("ques_misconception_end", "question"))
+        if "ques_misconception_end" in df.columns.tolist():
+            df["ques_misconception_label"] = df.apply(_feature_labels, axis=1, args=("ques_misconception_end", "question"))
         if "factuality_end" in df.columns.tolist():
             df["factuality_label"] = df.apply(_feature_labels, axis=1, args=("factuality_end", "answer"))
-        df["irrelevance_label"] = df.apply(_feature_labels, axis=1, args=("irrelevance_end", "answer"))
+        if "irrelevance_end" in df.columns.tolist():
+            df["irrelevance_label"] = df.apply(_feature_labels, axis=1, args=("irrelevance_end", "answer"))
         # df["incomplete_ques_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ques_end", "question"))
-        df["incomplete_ans_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ans_end", "answer"))
-        df["reference_example_label"] = df.apply(_feature_labels, axis=1, args=("reference_example_end", "answer"))
+        if "incomplete_ans_end" in df.columns.tolist():
+            df["incomplete_ans_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ans_end", "answer"))
+        if "reference_example_end" in df.columns.tolist():
+            df["reference_example_label"] = df.apply(_feature_labels, axis=1, args=("reference_example_end", "answer"))
         # df["hard_label"] = df.apply(_feature_labels, axis=1, args=("hard_end", "answer"))
 
         # remove unnecessary columns that contain the following strings
@@ -413,14 +414,75 @@ def get_top_k_words(path, layer, k):
 
 
 if __name__ == '__main__':
-    num_annotator = "pilot"  # 2  # 1, 2 or 3
+
+    # mapping of prolific id to inception ids
+    annotators = [
+        {
+            "subject": "physics",
+            "data": {
+                "65084f62e461daed90b8fc1b": "ylXVsK4eAYj6keYU2D7P8A",
+            }
+        },
+        {
+            "subject": "chemistry",
+            "data": {
+                "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
+            }
+        },
+        {
+            "subject": "biology",
+            "data": {
+                "tatjana": "4E4KDglOHRxflovIhgyahA",
+                "leon": "kx7IZQV_R_uhMxYEyuv-8w",
+                "60a6c78720fb46c16a21ab1e": "9qDy2dkwY13nFOeb_9EFwg",
+            }
+        },
+        {
+            "subject": "technology",
+            "data": {
+                "637fbedd06b96e980ee37a6d": "kwrgq4M0bY2l3J8r4P7brg",
+                "5e405a1cfce14d29997364da": "fVN5PJgISNUiNDXP3zln0g",
+                "6409e62d6c3b9a78a7e4bd9d": "MU9gRbyEP9bXfoL5r5oudQ",
+            }
+        },
+        {
+            "subject": "economics",
+            "data": {
+                "60d0de75282711f66dce1d3c": "aAAgT5wo_9-I1uJpWeHZPA",
+                "5e7987df47422a5443426cd7": "n3-ljRxwKXnMTea1LVfhyQ",
+            }
+        },
+        {
+            "subject": "law",
+            "data": {
+                "60fce87b3beaa7a435f3f600": "vLUIv9mYCe4tU2QH7FIYbg",
+                "5fc00a11268eb941e7d8b066": "Desc6S0nEIJt9E3gMwrXEA",
+                "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
+            }
+        },
+        {
+            "subject": "history",
+            "data": {
+                "60b129b01647197ac182d707": "aX3xj2W--zDgjU_Dwt4z8g",
+                "613637a4f7a0e5359082010b": "mc2iPi5yGVdu_k_HvBzgtw",
+                # "5f59196cdfe283117d6e909e": "l9ZE9PGM5FSTAxqwc3ad1w", # ongoing
+            }
+        },
+    ]
+
     category = "law"
-    annotate = Annotation(
-        project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
-        metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
-        save_path=f"src/data/prolific/results_{category}_tud_{num_annotator}_3"
-    )
-    annotate.main()
+    num_annotator = 1
+    for annotator in annotators:
+        if annotator["subject"] == category:
+            for prolific_id, inception_id in annotator["data"].items():
+                annotate = Annotation(
+                    project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
+                    metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
+                    save_path=f"src/data/prolific/results_{category}_tud_{num_annotator}_{prolific_id}",
+                    annotator_idx=[inception_id],
+                )
+                annotate.main()
+                num_annotator += 1
 
     # path = "data/prolific/pilot_results_bio_v0/lfqa_pilot_complete.csv"
     # # layer_wise_analysis(path, "reference_example")

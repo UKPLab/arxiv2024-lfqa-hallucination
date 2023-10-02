@@ -62,9 +62,7 @@ def zero_shot_gen(data_path, model_name, category):
     with jsonlines.open(f"{data_path}QA_By_Human_Answers/{category}.jsonl", "r") as reader:
         for sample in tqdm(reader):
             max_tokens = int(sample["human_ans_white_space_len"]*1.5)
-            c +=1
-            if c<72:
-                continue
+            c += 1
             generated_ans = get_response(sample["prompt"], max_tokens, model_name)
 
             sample["zero_shot_ans"] = generated_ans["choices"][0]["message"]["content"]
