@@ -255,19 +255,19 @@ class Annotation:
                         labels.append(f"{label_name}2")
             return labels
 
-        # create new columns with the tags
-        if "ques_misconception_end" in df.columns.tolist():
-            df["ques_misconception_label"] = df.apply(_feature_labels, axis=1, args=("ques_misconception_end", "question"))
-        if "factuality_end" in df.columns.tolist():
-            df["factuality_label"] = df.apply(_feature_labels, axis=1, args=("factuality_end", "answer"))
-        if "irrelevance_end" in df.columns.tolist():
-            df["irrelevance_label"] = df.apply(_feature_labels, axis=1, args=("irrelevance_end", "answer"))
-        # df["incomplete_ques_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ques_end", "question"))
-        if "incomplete_ans_end" in df.columns.tolist():
-            df["incomplete_ans_label"] = df.apply(_feature_labels, axis=1, args=("incomplete_ans_end", "answer"))
-        if "reference_example_end" in df.columns.tolist():
-            df["reference_example_label"] = df.apply(_feature_labels, axis=1, args=("reference_example_end", "answer"))
-        # df["hard_label"] = df.apply(_feature_labels, axis=1, args=("hard_end", "answer"))
+        columns_to_process = [
+            "ques_misconception",
+            "factuality",
+            "irrelevance",
+            "incomplete_ans",
+            "reference_example"
+        ]
+
+        for column in columns_to_process:
+            if f"{column}_end" in df.columns:
+                new_column_name = f"{column}_label"
+                df[new_column_name] = df.apply(
+                    _feature_labels, axis=1, args=(f"{column}_end", "question" if "ques" in column else "answer"))
 
         # remove unnecessary columns that contain the following strings
         remove_cols = ["_begin", "_end", "_sentence_text", "_sentence", "_annotation"]
@@ -426,7 +426,8 @@ if __name__ == '__main__':
         {
             "subject": "chemistry",
             "data": {
-                "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
+                # "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
+                "Muhammad Arshad": "GjGOylWQTyKPbp-yaaxaUg",
             }
         },
         {
@@ -456,8 +457,8 @@ if __name__ == '__main__':
             "subject": "law",
             "data": {
                 "60fce87b3beaa7a435f3f600": "vLUIv9mYCe4tU2QH7FIYbg",
-                "5fc00a11268eb941e7d8b066": "Desc6S0nEIJt9E3gMwrXEA",
-                "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
+                # "5fc00a11268eb941e7d8b066": "Desc6S0nEIJt9E3gMwrXEA",
+                # "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
             }
         },
         {
@@ -470,8 +471,8 @@ if __name__ == '__main__':
         },
     ]
 
-    category = "law"
-    num_annotator = 1
+    category = "chemistry"
+    num_annotator = "pilot"
     for annotator in annotators:
         if annotator["subject"] == category:
             for prolific_id, inception_id in annotator["data"].items():
@@ -482,7 +483,8 @@ if __name__ == '__main__':
                     annotator_idx=[inception_id],
                 )
                 annotate.main()
-                num_annotator += 1
+                if isinstance(num_annotator, int):
+                    num_annotator += 1
 
     # path = "data/prolific/pilot_results_bio_v0/lfqa_pilot_complete.csv"
     # # layer_wise_analysis(path, "reference_example")
