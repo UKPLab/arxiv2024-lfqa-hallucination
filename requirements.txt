@@ -2,3 +2,8 @@
 dkpro-cassis==0.7.3
 inceptalytics==0.1.1
 wordcloud==1.8.2.2
+transformers==4.34.0
+torch==2.1.0
+accelerate==0.23.0
+langchain==0.0.312
+pycountry

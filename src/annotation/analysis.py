@@ -420,14 +420,20 @@ if __name__ == '__main__':
         {
             "subject": "physics",
             "data": {
-                "65084f62e461daed90b8fc1b": "ylXVsK4eAYj6keYU2D7P8A",
+                # "65084f62e461daed90b8fc1b": "ylXVsK4eAYj6keYU2D7P8A",
+                # "5813fc6c3b65a80001c0aca8": "R_zmaeYPUlecILGkj96v4A",
+                "sweta": "YD9EGI9rKnE2xJ-n94eokA",
+                # "ruwan": "M3fXDYhva6bay7JfLfN3vQ",
             }
         },
         {
             "subject": "chemistry",
             "data": {
                 # "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
-                "Muhammad Arshad": "GjGOylWQTyKPbp-yaaxaUg",
+                # "Muhammad Arshad": "zNR5hrVdZS1Dgt6NBr7wXg",
+                # "Melvin Castrosanto": "LMtLiMSS8op3yprUqJosOw",
+                # "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
+                "lanceheard1@gmail.com": "Ac9t6b1luJ2HhZ2blmNXiw",
             }
         },
         {
@@ -450,15 +456,17 @@ if __name__ == '__main__':
             "subject": "economics",
             "data": {
                 "60d0de75282711f66dce1d3c": "aAAgT5wo_9-I1uJpWeHZPA",
-                "5e7987df47422a5443426cd7": "n3-ljRxwKXnMTea1LVfhyQ",
+                # "5e7987df47422a5443426cd7": "n3-ljRxwKXnMTea1LVfhyQ",
+                # "650c3ea3bb7f3b500e2db7a1": "hRWrdWxx6KlL_Wou9NVhpg",
             }
         },
         {
             "subject": "law",
             "data": {
-                "60fce87b3beaa7a435f3f600": "vLUIv9mYCe4tU2QH7FIYbg",
+                # "60fce87b3beaa7a435f3f600": "vLUIv9mYCe4tU2QH7FIYbg",
                 # "5fc00a11268eb941e7d8b066": "Desc6S0nEIJt9E3gMwrXEA",
                 # "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
+                "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
             }
         },
         {
@@ -466,13 +474,13 @@ if __name__ == '__main__':
             "data": {
                 "60b129b01647197ac182d707": "aX3xj2W--zDgjU_Dwt4z8g",
                 "613637a4f7a0e5359082010b": "mc2iPi5yGVdu_k_HvBzgtw",
-                # "5f59196cdfe283117d6e909e": "l9ZE9PGM5FSTAxqwc3ad1w", # ongoing
+                "5f59196cdfe283117d6e909e": "l9ZE9PGM5FSTAxqwc3ad1w",
             }
         },
     ]
 
-    category = "chemistry"
-    num_annotator = "pilot"
+    category = "economics"
+    num_annotator = 1
     for annotator in annotators:
         if annotator["subject"] == category:
             for prolific_id, inception_id in annotator["data"].items():

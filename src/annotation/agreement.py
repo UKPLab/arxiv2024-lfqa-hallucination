@@ -37,9 +37,16 @@ def process_annotator_data(category=None, num_annotators=3):
 
     dataframes = []
     for annotator in range(1, num_annotators+1):
-        data_path = f"src/data/prolific/results_{category}_tud_{annotator}"
+        base_path = "src/data/prolific"
+        files = os.listdir(base_path)
+        data_path = f"results_{category}_tud_{annotator}"
+        for file in files:
+            if file.__contains__(data_path):
+                data = f"{base_path}/{file}"
+                break
+
         df = pd.read_csv(
-            os.path.join(data_path, "lfqa_pilot_complete.csv"),
+            os.path.join(data, "lfqa_pilot_complete.csv"),
             na_values=['NA', 'NaN', '', 'NULL', 'missing', "[]"],
             delimiter="\t",
         )
@@ -64,6 +71,7 @@ def calculate_preference(category=None, num_annotators=3):
     model_percentage = (value_counts['model_answer'] /
                         (value_counts['model_answer'] + value_counts['human_answer'])) * 100
     return model_percentage, 100-model_percentage
+
 
 
 def calculate_len(row, check):
@@ -112,16 +120,16 @@ if __name__ == '__main__':
     ###########################################################
     # AGREEMENT
     ###########################################################
-    # response = calculate_agreement(
-    #     category="economics",
-    #     num_annotators=2
-    # )
+    response = calculate_agreement(
+        category="physics",
+        num_annotators=3
+    )
     # # print(response)
     #
-    # response_array = np.array(response)
-    # # print(response_array)
-    # alpha_value = alpha(reliability_data=response_array)
-    # print("Krippendorff's alpha:", alpha_value)
+    response_array = np.array(response)
+    # print(response_array)
+    alpha_value = alpha(reliability_data=response_array)
+    print("Krippendorff's alpha:", alpha_value)
 
     ############################################################
 
@@ -137,7 +145,7 @@ if __name__ == '__main__':
     ###########################################################
     # STATS
     ###########################################################
-    response = calculate_answer_stats(
-        category="biology",
-        num_annotators=3
-    )
+    # response = calculate_answer_stats(
+    #     category="biology",
+    #     num_annotators=3
+    # )
