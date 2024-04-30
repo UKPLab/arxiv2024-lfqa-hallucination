@@ -20,30 +20,6 @@ from typing import Dict, Iterable, List
 from src.data_creation import utils
 
 
-# def self_refine_prompt():
-#     template = """
-# Answer the following question: "{question}"
-# Your answer is: "{answer}".
-# Sentence: "{sentence}" in the answer is not complete because: "{reason}".
-# Please improve your answer.
-# Your improved answer:
-#
-# """
-#     return template
-
-# try 1
-# def self_refine_prompt():
-#     template = """
-# Answer the following question: "{question}"
-# Your answer is: "{answer}".
-# The answer is not complete because: "{reason}".
-# Please improve your answer.
-# Your improved answer:
-#
-# """
-#     return template
-
-# best
 def self_refine_prompt():
     template = """
 Answer the following question: "{question}"
@@ -56,16 +32,6 @@ Your improved answer:
 """
     return template
 
-
-# def no_feedback_prompt():
-#     template = """
-# Given the following question: "{question}"
-# The original answer is: "{answer}"
-# Please refine the original answer (only if needed) to better answer the question.
-# Your refined answer:
-#
-# """
-#     return template
 
 def no_feedback_prompt():
     template = """
@@ -261,45 +227,6 @@ class SelfRefine:
         return decoded
 
 
-# def process_inputs(task: str, data: List[Dict]):
-#     # print(data)
-#     results = []
-#     for d in data:
-#         feedback: Dict[str, Iterable] = {}
-#
-#         if task == "self_refine":
-#             prompt = d["prompt"]
-#             start_index = prompt.find("Question:") + len("Question:")
-#             end_index = prompt.find("Answer:")
-#             question = prompt[start_index:end_index].strip()
-#
-#             start_index = prompt.find("Answer:") + len("Answer:")
-#             end_index = prompt.find("\n### Response")
-#             answer = prompt[start_index:end_index].strip()
-#
-#             feedback["question"] = question
-#             feedback["answer"] = answer
-#
-#             output = d["prediction"]
-#             # for sentence in output if it has the [incomplete] tag, save the error sentence and reason
-#             error_sentence = ""
-#             reason = ""
-#             for i, sent in enumerate(output.split("\n")):
-#                 if "[Incomplete]" in sent:
-#                     error_sentence = i + 1
-#                     reason = sent.split("Reasons: ")[1]
-#                     break
-#
-#             feedback["error_sentence"] = error_sentence
-#             feedback["reason"] = reason
-#         elif task in ["no_refine", "generic_refine"]:
-#             feedback["question"] = d["question"]
-#             feedback["answer"] = d["answer"]
-#         results.append(feedback)
-#     # return feedback for all samples
-#     return results
-
-
 def process_inputs(task: str, dataset: str, data: List[Dict]):
     # print(data)
     results = []
@@ -429,10 +356,6 @@ if __name__ == '__main__':
         # print("*" * 100)
         sections = predictions.split('\n\n')
         updated_text = '\n\n'.join(sections[1:])
-        # print(predictions)
-        # print("*" * 100)
-        # print(updated_text)
-        # print("#" * 100)
 
         outputs.append(
             {
@@ -444,10 +367,7 @@ if __name__ == '__main__':
                 "prediction": updated_text
             }
         )
-        # break
-        # save the prediction
-        # feedback["prediction"] = prediction
-        # break
+
     # save the outputs
     with open(
             f"{args.base_path}results/llama2_13b_no_feedback_responses_{args.dataset}_seed_{args.seed}_all.json",
