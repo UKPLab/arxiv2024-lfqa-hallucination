@@ -1,0 +1,58 @@
+[
+    {
+        "subject": "physics",
+        "data": {
+            "ruwan": "M3fXDYhva6bay7JfLfN3vQ",
+            "5813fc6c3b65a80001c0aca8": "R_zmaeYPUlecILGkj96v4A",
+            "sweta": "YD9EGI9rKnE2xJ-n94eokA"
+        }
+    },
+    {
+        "subject": "chemistry",
+        "data": {
+            "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
+            "Muhammad Arshad": "zNR5hrVdZS1Dgt6NBr7wXg",
+            "lanceheard1@gmail.com": "Ac9t6b1luJ2HhZ2blmNXiw"
+        }
+    },
+    {
+        "subject": "biology",
+        "data": {
+            "tatjana": "4E4KDglOHRxflovIhgyahA",
+            "leon": "kx7IZQV_R_uhMxYEyuv-8w",
+            "60a6c78720fb46c16a21ab1e": "9qDy2dkwY13nFOeb_9EFwg"
+        }
+    },
+    {
+        "subject": "technology",
+        "data": {
+            "637fbedd06b96e980ee37a6d": "kwrgq4M0bY2l3J8r4P7brg",
+            "5e405a1cfce14d29997364da": "fVN5PJgISNUiNDXP3zln0g",
+            "6409e62d6c3b9a78a7e4bd9d": "MU9gRbyEP9bXfoL5r5oudQ"
+        }
+    },
+    {
+        "subject": "economics",
+        "data": {
+            "5e7987df47422a5443426cd7": "n3-ljRxwKXnMTea1LVfhyQ",
+            "60d0de75282711f66dce1d3c": "aAAgT5wo_9-I1uJpWeHZPA",
+            "650c3ea3bb7f3b500e2db7a1": "hRWrdWxx6KlL_Wou9NVhpg"
+        }
+    },
+    {
+        "subject": "law",
+        "data": {
+            "5fc00a11268eb941e7d8b066": "Desc6S0nEIJt9E3gMwrXEA",
+            "60fce87b3beaa7a435f3f600": "vLUIv9mYCe4tU2QH7FIYbg",
+            "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA"
+        }
+    },
+    {
+        "subject": "history",
+        "data": {
+            "5f59196cdfe283117d6e909e": "l9ZE9PGM5FSTAxqwc3ad1w",
+            "60b129b01647197ac182d707": "aX3xj2W--zDgjU_Dwt4z8g",
+            "613637a4f7a0e5359082010b": "mc2iPi5yGVdu_k_HvBzgtw"
+        }
+    }
+]

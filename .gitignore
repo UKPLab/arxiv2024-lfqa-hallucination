@@ -5,16 +5,39 @@ inception-app-webapp-25.2-standalone.jar
 
 
 # sensitive data
+results
+experiments
 src/data/human_annotations
 src/data/lfqa-*
 src/data/plots
-src/data/prolific
+src/data/annotated_data
 src/data/projects
 src/data/scraped_eli5
 src/data/*.txt
+src/data/annotators.json
 .env
 
 
 # code and cache
 .idea
 **__pycache__
+
+
+# unwanted code
+scripts/download_llama3.sh
+
+src/annotation/meta_annotation.py
+src/modelling/quantization.py
+src/modelling/merge_adapters.py
+src/modelling/llama_flash_att_monkey_patch.py
+src/modelling/error_detection.py
+src/modelling/completeness_pipeline.py
+
+src/modelling/dpo/sft_classification.py
+src/modelling/dpo/llama3_dpo.py
+src/modelling/dpo/llama3_orpo.py
+
+src/modelling/inference/test_inference.py
+src/modelling/inference/llama3_inference.py
+
+src/prompts

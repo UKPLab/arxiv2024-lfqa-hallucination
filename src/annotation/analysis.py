@@ -25,8 +25,8 @@ class Annotation:
             annotator_idx: List,
             include_pilot: bool = False
     ):
-        self.project = Project.from_zipped_xmi(project_path)
-        self.annotations = annotation_info_from_xmi_zip(project_path)
+        self.project = Project.from_zipped_xmi(project_path, mode="")
+        self.annotations = annotation_info_from_xmi_zip(project_path, mode="")
         self.metadata_path = metadata_path
         self.save_path = save_path
         self.annotator_idx = annotator_idx
@@ -54,6 +54,7 @@ class Annotation:
             "annotators": annotators
         }
         annotators = project["annotators"]
+        # print(annotators)
         source_files = project["source_files"]
         features = project["features"]
 
@@ -118,7 +119,12 @@ class Annotation:
             )
 
         df = reduced_annos.data_frame
-        # print(df.columns)
+        if type_name == "factuality":
+            pd.set_option('display.max_rows', None)
+            pd.set_option('display.max_columns', None)
+            # print(feature_path)
+            # print(df.columns)
+            # print(df.head(n=50))
 
         if "reference" in type_name:
             # get the reference helpfulness
@@ -290,7 +296,11 @@ class Annotation:
 
     def main(self):
         layers = [layer for layer in self.project.custom_layers]  # if not layer.__contains__("Answerpreference")]
+        # layers = ['webanno.custom.Factuality']
+        # print(layers)
         features = [self.project.features(layer)[-1] for layer in layers]
+        # features = ['Reasonforfactualincorrectness']
+        # print(features)
         for idx, (layer, feature) in enumerate(zip(layers, features)):
             type_name = layer.split(".")[-1]
 
@@ -378,21 +388,26 @@ def get_top_k_words(path, layer, k):
     :return:
     """
 
-    df = pd.read_csv(path, sep='\t')
+    df = pd.read_csv(
+        path,
+        na_values=['NA', 'NaN', '', 'NULL', 'missing', "[]"],
+        delimiter="\t",
+    )
+    df.reset_index(drop=True, inplace=True)
     choice = []
-    ans_reason = []
+    reason = []
 
     for index, row in df.iterrows():
         if df[f"{layer}"][index] is not np.nan:
             if df[f"{layer}"][index].__contains__("1"):
                 choice.append(df[f"ans1_label"][index])
-                ans_reason.append(df[f"ans_preference_reason"][index])  # get the reference helpfulness
+                reason.append(df[f"ans_preference_reason"][index])  # get the reference helpfulness
             elif df[f"{layer}"][index].__contains__("2"):
                 choice.append(df[f"ans2_label"][index])
-                ans_reason.append(df[f"ans_preference_reason"][index])  # get the reference helpfulness
+                reason.append(df[f"ans_preference_reason"][index])  # get the reference helpfulness
 
-    ans_human = [ans_reason[idx] for idx, x in enumerate(choice) if "human" in x]
-    ans_model = [ans_reason[idx] for idx, x in enumerate(choice) if "model" in x]
+    ans_human = [reason[idx] for idx, x in enumerate(choice) if "human" in x]
+    ans_model = [reason[idx] for idx, x in enumerate(choice) if "model" in x]
 
     # get the answer_preference_reason column
     # ans_pref_reason = df['ans_preference_reason'].tolist()
@@ -400,100 +415,149 @@ def get_top_k_words(path, layer, k):
     # get avg length of answer preference reason in words
     avg_len = sum(len(x.split()) for x in ans_human) / len(ans_human)
     # avg_len = sum(len(ast.literal_eval(x)) for x in ans_pref_reason) / len(ans_pref_reason)
-    print(f"Average length of answer preference reason: {avg_len}")
+    print(f"Average length of reason: {avg_len}")
 
     # add to nltk stopwords
     nltk_stopwords = nltk.corpus.stopwords.words('english')
-    nltk_stopwords.extend(['1', '2', 'answer', 'Answer', 'question', 'one', ',', 'I', 'It', '1.'])
+    nltk_stopwords.extend(['1', '2', 'answer', 'Answer', 'question', 'one', ',', 'I', 'It', '1.',
+                           'answers', 'The', 'question.', 'question,', 'answer.', 'This', 'The', 'could', 'would',
+                           'may', 'might', 'Both', 'response', '2.', 'also'])
     # get the top k words from list of strings ignoring stopwords
     top_k_words = Counter([word for line in ans_human for word in line.split()
                            if word not in nltk_stopwords]).most_common(k)
-    # top_k_words = Counter(" ".join(ans_pref_reason).split()).most_common(k)
-    print(f"Top {k} words: {top_k_words}")
-    return top_k_words
+    # combine similar words
+    # Initialize a Porter stemmer
+    from collections import defaultdict
+    from nltk.stem import PorterStemmer
+    from nltk.stem.snowball import SnowballStemmer
+    stemmer = SnowballStemmer(language='english')
+
+    # Dictionary to store combined words and their frequencies
+    combined_words = defaultdict(int)
+    # Dictionary to store original words associated with each stemmed word
+    original_words = defaultdict(list)
+
+    # Combine similar words based on their stemmed forms
+    for word, freq in top_k_words:
+        stemmed_word = stemmer.stem(word)
+        combined_words[stemmed_word] += freq
+        original_words[stemmed_word].append(word)
+
+    # Convert combined words back to a list of tuples with full words
+    combined_word_freq = [(re.sub(r'[^\w\s]', '', original_words[word][0]).lower(), frequency)
+                          for word, frequency in combined_words.items()]
+
+    # Sort the combined word frequencies by frequency count in descending order
+    combined_word_freq.sort(key=lambda x: x[1], reverse=True)
+
+    print(f"Top {len(combined_word_freq)} words: {combined_word_freq}")
+    return combined_word_freq
+
+
+def get_top_k_aspect_words(path, layer, k):
+
+    """
+    Function to get the top k words in the answer_preference_reason in df
+    :param path:
+    :param layer:
+    :param k:
+    :return:
+    """
+
+    df = pd.read_csv(
+        path,
+        na_values=['NA', 'NaN', '', 'NULL', 'missing', "[]"],
+        delimiter="\t",
+    )
+    df.reset_index(drop=True, inplace=True)
+    choice = []
+    reason = []
+
+    for index, row in df.iterrows():
+        if df[f"{layer}_label"][index] is not np.nan:
+            if df[f"{layer}_label"][index].__contains__("1"):
+                choice.append(df[f"ans1_label"][index])
+                reason.append(df[f"incomplete_ans_reason"][index])  # get the reference helpfulness
+            elif df[f"{layer}_label"][index].__contains__("2"):
+                choice.append(df[f"ans2_label"][index])
+                reason.append(df[f"incomplete_ans_reason"][index])  # get the reference helpfulness
+
+    ans_human = [reason[idx] for idx, x in enumerate(choice) if "human" in x]
+    ans_model = [reason[idx] for idx, x in enumerate(choice) if "model" in x]
+
+    # get the answer_preference_reason column
+    # ans_pref_reason = df['ans_preference_reason'].tolist()
+    # print(f"Answer preference reason: {ans_pref_reason}")
+    # get avg length of answer preference reason in words
+    avg_len = sum(len(x.split()) for x in ans_human) / len(ans_human)
+    # avg_len = sum(len(ast.literal_eval(x)) for x in ans_pref_reason) / len(ans_pref_reason)
+    print(f"Average length of reason: {avg_len}")
+
+    # add to nltk stopwords
+    nltk_stopwords = nltk.corpus.stopwords.words('english')
+    nltk_stopwords.extend(['1', '2', 'answer', 'Answer', 'question', 'one', ',', 'I', 'It', '1.', 'This', 'The', '\'The',
+                           'could', 'would', 'may', 'might', 'should', 'can', 'will', 'shall', 'must', 'also', 'like', '-'])
+    # get the top k words from list of strings ignoring stopwords
+    top_k_words = Counter([word for line in ans_human for word in line.split()
+                           if word not in nltk_stopwords]).most_common(k)
+    print(top_k_words)
+    # combine similar words
+    # Initialize a Porter stemmer
+    from collections import defaultdict
+    from nltk.stem import PorterStemmer
+    from nltk.stem.snowball import SnowballStemmer
+    stemmer = SnowballStemmer(language='english')
+
+    # Dictionary to store combined words and their frequencies
+    combined_words = defaultdict(int)
+    # Dictionary to store original words associated with each stemmed word
+    original_words = defaultdict(list)
+
+    # Combine similar words based on their stemmed forms
+    for word, freq in top_k_words:
+        stemmed_word = stemmer.stem(word)
+        combined_words[stemmed_word] += freq
+        original_words[stemmed_word].append(word)
+
+    # Convert combined words back to a list of tuples with full words
+    combined_word_freq = [(re.sub(r'[^\w\s]', '', original_words[word][0]).lower(), frequency)
+                          for word, frequency in combined_words.items()]
+
+    # Sort the combined word frequencies by frequency count in descending order
+    combined_word_freq.sort(key=lambda x: x[1], reverse=True)
+
+    print(f"Top {len(combined_word_freq)} words: {combined_word_freq}")
+    return combined_word_freq
 
 
 if __name__ == '__main__':
 
-    # mapping of prolific id to inception ids
-    annotators = [
-        {
-            "subject": "physics",
-            "data": {
-                # "65084f62e461daed90b8fc1b": "ylXVsK4eAYj6keYU2D7P8A",
-                # "5813fc6c3b65a80001c0aca8": "R_zmaeYPUlecILGkj96v4A",
-                "sweta": "YD9EGI9rKnE2xJ-n94eokA",
-                # "ruwan": "M3fXDYhva6bay7JfLfN3vQ",
-            }
-        },
-        {
-            "subject": "chemistry",
-            "data": {
-                # "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
-                # "Muhammad Arshad": "zNR5hrVdZS1Dgt6NBr7wXg",
-                # "Melvin Castrosanto": "LMtLiMSS8op3yprUqJosOw",
-                # "6400ed5065c350e3ad8c8233": "cq47p0--97gGaUn_1LZktA",
-                "lanceheard1@gmail.com": "Ac9t6b1luJ2HhZ2blmNXiw",
-            }
-        },
-        {
-            "subject": "biology",
-            "data": {
-                "tatjana": "4E4KDglOHRxflovIhgyahA",
-                "leon": "kx7IZQV_R_uhMxYEyuv-8w",
-                "60a6c78720fb46c16a21ab1e": "9qDy2dkwY13nFOeb_9EFwg",
-            }
-        },
-        {
-            "subject": "technology",
-            "data": {
-                "637fbedd06b96e980ee37a6d": "kwrgq4M0bY2l3J8r4P7brg",
-                "5e405a1cfce14d29997364da": "fVN5PJgISNUiNDXP3zln0g",
-                "6409e62d6c3b9a78a7e4bd9d": "MU9gRbyEP9bXfoL5r5oudQ",
-            }
-        },
-        {
-            "subject": "economics",
-            "data": {
-                "60d0de75282711f66dce1d3c": "aAAgT5wo_9-I1uJpWeHZPA",
-                # "5e7987df47422a5443426cd7": "n3-ljRxwKXnMTea1LVfhyQ",
-                # "650c3ea3bb7f3b500e2db7a1": "hRWrdWxx6KlL_Wou9NVhpg",
-            }
-        },
-        {
-            "subject": "law",
-            "data": {
-                # "60fce87b3beaa7a435f3f600": "vLUIv9mYCe4tU2QH7FIYbg",
-                # "5fc00a11268eb941e7d8b066": "Desc6S0nEIJt9E3gMwrXEA",
-                # "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
-                "6136503d70302c9d1aa894f4": "Q1unN_y2fXrvLSxc1Dc_rA",
-            }
-        },
-        {
-            "subject": "history",
-            "data": {
-                "60b129b01647197ac182d707": "aX3xj2W--zDgjU_Dwt4z8g",
-                "613637a4f7a0e5359082010b": "mc2iPi5yGVdu_k_HvBzgtw",
-                "5f59196cdfe283117d6e909e": "l9ZE9PGM5FSTAxqwc3ad1w",
-            }
-        },
-    ]
-
-    category = "economics"
-    num_annotator = 1
-    for annotator in annotators:
-        if annotator["subject"] == category:
-            for prolific_id, inception_id in annotator["data"].items():
-                annotate = Annotation(
-                    project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
-                    metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
-                    save_path=f"src/data/prolific/results_{category}_tud_{num_annotator}_{prolific_id}",
-                    annotator_idx=[inception_id],
-                )
-                annotate.main()
-                if isinstance(num_annotator, int):
-                    num_annotator += 1
+    # # get annotator data
+    # with open("src/data/annotators.json") as file:
+    #     annotator_data = json.load(file)
+    # category = "economics"
+    # # check file path
+    # base_path = f"src/data/annotated_data/{category}"
+    # if not os.path.exists(base_path):
+    #     os.makedirs(base_path)
+    #
+    # num_annotator = 1
+    # for annotator in annotator_data:
+    #     if annotator["subject"] == category:
+    #         annotator_idx = list(annotator["data"].values())
+    #         for prolific_id, inception_id in annotator["data"].items():
+    #             annotate = Annotation(
+    #                 project_path=f"src/data/projects/{category}/lfqa-{category}-tud-{num_annotator}.zip",
+    #                 metadata_path=f"src/data/human_annotations/gpt4/{category}/zero/{category}/v0/",
+    #                 save_path=f"{base_path}/results_{category}_tud_{num_annotator}_{prolific_id}",
+    #                 annotator_idx=annotator_idx,
+    #             )
+    #             annotate.main()
+    #             if isinstance(num_annotator, int):
+    #                 num_annotator += 1
 
     # path = "data/prolific/pilot_results_bio_v0/lfqa_pilot_complete.csv"
-    # # layer_wise_analysis(path, "reference_example")
-    # get_top_k_words(path, "ans_preference", 10)
+    path = "src/data/annotated_data/complete_data_scores.csv"
+    # layer_wise_analysis(path, "reference_example")
+    get_top_k_words(path, "ans_preference", 100)
+    # get_top_k_aspect_words(path, "incomplete_ans", 50)

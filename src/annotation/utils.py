@@ -7,6 +7,8 @@ import ast
 
 
 import pandas as pd
+from src.data_creation import utils
+
 
 def convert_excel_to_text(file_path, file_name):
     """Converts a tsv file to a text file"""
@@ -76,6 +78,55 @@ def convert_jsonl_to_text(file_path, file_name, version):
         json.dump(data_config, fp=f, indent=4)
 
 
+def convert_json_to_text(file_path, file_name, version):
+    """
+    Converts a jsonl file to a text file
+    :param file_path:
+    :param file_name:
+    :return:
+    """
+    data = utils.jload(file_path+file_name)
+    documents = [f"{file_name.replace('.json', str('_')+str(i+1)+'.txt')}"
+                 for i in range(len(data))]
+    # print(data[0])
+    data_config = []
+    for i, example in enumerate(data):
+        question = example["question"]
+        # print(question)
+        question = f"QUESTION:\n{question}".replace('<br />', '\n').replace('\r', '')
+        random_no = random.randint(1, 2)
+        answer = f"ANSWER{random_no}:\n{example['answer']}".replace('<br />', '\n').replace('\r', '')
+        print(example['answer'])
+        print(answer)
+        print("*"*10)
+        save_path = file_path + file_name.split('_')[1].lower() + "/" + file_name.split('_')[0].lower() + "/"
+        # print(save_path)
+        if version:
+            save_path += version+"/"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        unique_id = str(uuid.uuid4())
+        if random_no == 1:
+            refined_answer = f"ANSWER2:\n{example['prediction']}".replace('<br />', '\n').replace('\r', '')
+            with open(save_path + f"{i}_" + unique_id + '.txt', 'w') as f:
+                f.write(question + '\n\n' + answer + '\n\n'+ question +'\n\n'+ refined_answer)
+            # save metadata
+            metadata = {unique_id: {"Answer1": "answer", "Answer2": "refined_answer"}}
+            print(refined_answer)
+        else:
+            refined_answer = f"ANSWER1:\n{example['prediction']}".replace('<br />', '\n').replace('\r', '')
+            with open(save_path + f"{i}_" + unique_id + '.txt', 'w') as f:
+                f.write(question + '\n\n' + refined_answer + '\n\n'+ question +'\n\n'+ answer)
+            # save metadata
+            metadata = {unique_id: {"Answer1": "refined_answer", "Answer2": "answer"}}
+
+        data_config.append(metadata)
+
+    with open(save_path + 'metadata.json', 'w') as f:
+        json.dump(data_config, fp=f, indent=4)
+
+
 def convert_jsonl(file_path, file_name, version):
     """
     Converts a jsonl file to a text file
@@ -127,10 +178,12 @@ def convert_jsonl(file_path, file_name, version):
 
 if __name__ == '__main__':
     # save_path = './src/data/prolific/results_bio_tud_1/'
-    filepath = './src/data/human_annotations/gpt4/physics/'
-    file_name = 'Physics_zero_shot.jsonl'
+    # filepath = './src/data/human_annotations/gpt4/physics/'
+    filepath = './results/'
+    file_name = 'llama2_13b_error_feedback_responses_held_out_seed_42.json'
     # # convert_excel_to_text(filepath, file_name)
-    convert_jsonl(filepath, file_name, version='pilot')
+    # convert_jsonl(filepath, file_name, version='pilot')
+    convert_json_to_text(filepath, file_name, version='held_out_v0')
     # data_path = 'src/data/human_annotations/gpt3/biology/zero/biology/v0/'
     # data_path = 'src/data/human_annotations/gpt4/biology/zero/biology/v0/'
     # collate_metadata(data_path, save_path)

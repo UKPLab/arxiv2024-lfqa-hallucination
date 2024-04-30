@@ -24,10 +24,6 @@ def calculate_percentage(row):
     return answer
 
 
-# # Apply the calculate_percentage function to each row
-# df[['human_percentage', 'model_percentage']] = df.apply(calculate_percentage, axis=1)
-
-
 def process_annotator_data(category=None, num_annotators=3):
     def convert_answers(response):
         if response == "Answer 1":
@@ -37,7 +33,34 @@ def process_annotator_data(category=None, num_annotators=3):
 
     dataframes = []
     for annotator in range(1, num_annotators+1):
-        base_path = "src/data/prolific"
+        base_path = f"src/data/annotated_data/{category}"
+
+        df = pd.read_csv(
+            os.path.join(base_path, "processed_data.csv"),
+            na_values=['NA', 'NaN', '', 'NULL', 'missing', "[]"],
+            delimiter="\t",
+        )
+        df.reset_index(drop=True, inplace=True)
+        # df['ans_preference'] = df['ans_preference'].apply(eval)  # Convert string lists to actual lists
+        df['ans_preference'] = df['ans_preference'].apply(convert_answers)
+        dataframes.append(df)
+
+    merged_df = pd.concat(dataframes, ignore_index=True)
+    # merged_df = merged_df.drop_duplicates(subset=["source_file"])
+    merged_df.drop(columns=['Unnamed: 0'], inplace=True)
+    return merged_df
+
+
+def process_data_for_agreement(category=None, num_annotators=3):
+    def convert_answers(response):
+        if response == "Answer 1":
+            return 1
+        else:
+            return 2
+
+    dataframes = []
+    for annotator in range(1, num_annotators+1):
+        base_path = f"src/data/annotated_data/{category}"
         files = os.listdir(base_path)
         data_path = f"results_{category}_tud_{annotator}"
         for file in files:
@@ -64,14 +87,16 @@ def process_annotator_data(category=None, num_annotators=3):
 def calculate_preference(category=None, num_annotators=3):
     data = process_annotator_data(category, num_annotators)
     grouped_df = data.groupby('source_file')[['ans1_label', 'ans2_label', 'ans_preference']].agg(list).reset_index()
+    print(grouped_df.head())
+    print(grouped_df.shape)
     # df[['human_percentage', 'model_percentage']] = df.apply(calculate_percentage, axis=1)
     grouped_df['majority_preference'] = grouped_df['ans_preference'].apply(lambda x: statistics.mode(x))
     grouped_df['final_preference'] = grouped_df.apply(calculate_percentage, axis=1)
+    print(grouped_df.shape)
     value_counts = dict(grouped_df['final_preference'].value_counts())
     model_percentage = (value_counts['model_answer'] /
                         (value_counts['model_answer'] + value_counts['human_answer'])) * 100
     return model_percentage, 100-model_percentage
-
 
 
 def calculate_len(row, check):
@@ -105,8 +130,10 @@ def calculate_answer_stats(category=None, num_annotators=3):
 
 def calculate_agreement(category=None, num_annotators=3):
 
-    data = process_annotator_data(category, num_annotators)
+    data = process_data_for_agreement(category, num_annotators)
+    print(data.head())
     grouped_df = data.groupby('source_file')[['ans1_label', 'ans2_label', 'ans_preference']].agg(list).reset_index()
+    print(grouped_df.head())
     # Count the occurrences of each 'source id'
     source_id_counts = data['source_file'].value_counts()
     grouped_df_filtered = grouped_df[grouped_df['source_file'].isin(source_id_counts[source_id_counts > 1].index)]
@@ -124,11 +151,12 @@ if __name__ == '__main__':
         category="physics",
         num_annotators=3
     )
-    # # print(response)
-    #
+    print(response)
     response_array = np.array(response)
-    # print(response_array)
-    alpha_value = alpha(reliability_data=response_array)
+    transposed_array = list(map(list, zip(*response_array)))
+    print(transposed_array)
+
+    alpha_value = alpha(reliability_data=transposed_array)
     print("Krippendorff's alpha:", alpha_value)
 
     ############################################################
@@ -136,12 +164,15 @@ if __name__ == '__main__':
     ###########################################################
     # PREFERENCE
     ###########################################################
-    # response = calculate_preference(
-    #     category="biology",
-    #     num_annotators=3
-    # )
-    # print(response)
-
+    # categories = ["biology", "chemistry", "economics", "history", "law", "physics", "technology"]
+    # for category in categories:
+    #     response = calculate_preference(
+    #         category=category,
+    #         num_annotators=3
+    #     )
+    #     print(category)
+    #     print(response)
+    #     print("--"*8)
     ###########################################################
     # STATS
     ###########################################################
