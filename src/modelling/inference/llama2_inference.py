@@ -114,13 +114,6 @@ if __name__ == '__main__':
         # print(qampari_data)
         data = qampari_data["test"]
 
-    # print(data.shape)
-    # print(data.column_names)
-    # print(data[1]["source"])
-    # print(data[1]["meta"])
-    # print(data[1]["target"])
-    # print(data["title"][:5])
-
     model = LLM(model_name)
     # print(model.get_tokenizer().name_or_path)
     sampling_params = SamplingParams(
