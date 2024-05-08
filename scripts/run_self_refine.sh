@@ -17,11 +17,12 @@ if [ -f .env ]; then
   export $(echo $(cat .env | sed 's/#.*//g'| xargs) | envsubst)
 fi
 
-TASK="no_refine"
+TASK="self_refine"
 DATASETS=(
+"baseline" \
 #"held_out" \
 #"asqa" \
-"eli5" \
+#"eli5" \
 )
 SEEDS=(42 0 1)
 

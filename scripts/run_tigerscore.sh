@@ -17,8 +17,9 @@ if [ -f .env ]; then
 fi
 
 DATASETS=(
+"baseline" \
 #"held_out" \
-"asqa" \
+#"asqa" \
 #"eli5" \
 #"eli5_science" \
 #"eli5_history" \
@@ -27,15 +28,15 @@ DATASETS=(
 #MODEL_NAME="meta-llama/Llama-2-7b-chat-hf"
 #MODEL_NAME="llama2_7b_chat_dpo_13_03"
 #MODEL_NAME="mistralai/Mistral-7B-Instruct-v0.1"
-#MODEL_NAME="llama2_13b_no_feedback_responses"
+MODEL_NAME="llama2_13b_error_feedback_responses"
 #MODEL_NAME="meta-llama/Meta-Llama-3-8B-Instruct"
 #MODEL_NAME="llama3_8b_instruct_dpo_v1"
 #MODEL_NAME="Llama-2-7b-chat-hf"
-MODEL_NAME="llama2_7B_instruct_orpo_dpo"
+#MODEL_NAME="llama2_7B_instruct_orpo_dpo"
 #MODEL_NAME="llama2_7B_orpo"
 #MODEL_NAME="mistral_instruct_dpo"
 #MODEL_NAME="llama2_chat"
-SEEDS=(42)
+SEEDS=(42 0 1)
 
 # mistral_instruct_dpo_13_03_eli5_history_1000
 # run script
@@ -47,10 +48,9 @@ do
     python ${BASE_PATH}/src/evaluation/tiger_score.py \
     --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_${DATASET}_seed_${SEED}.jsonl"  \
     --dataset ${DATASET} \
-    --seed ${SEED}  \
-    --score
+    --seed ${SEED} \
+    --f1_score
   done
 done
 
-
-# # --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_${DATASET}_seed_${SEED}.jsonl"  \
+# --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_${DATASET}_seed_${SEED}.jsonl"  \

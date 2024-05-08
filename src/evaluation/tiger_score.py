@@ -41,12 +41,12 @@ def postprocess_predictions(prediction):
 def score_predictions(args, file_path: str):
     from tigerscore import TIGERScorer
     scorer = TIGERScorer(model_name="TIGER-Lab/TIGERScore-7B", use_vllm=True)  # on GPU
-    results = read_results(file_path)
+    # results = read_results(file_path)
     # print(results)
-    # results = utils.jload(file_path)
+    results = utils.jload(file_path)
     eval_results = []
     for result in tqdm(results):
-        result = ast.literal_eval(result)
+        # result = ast.literal_eval(result)
         prediction = postprocess_predictions(result["prediction"])    # prediction
         # print(prediction)
         # instruction = "Answer the given question."
@@ -168,8 +168,8 @@ if __name__ == '__main__':
                         help="random seed for reproducibility")
 
     args = parser.parse_args()
-    file_path = f"experiments/results_{args.output_dir}"
-    # file_path = f"results/llama2_13b_no_feedback_responses_{args.dataset}_seed_{args.seed}_all.json"
+    # file_path = f"experiments/results_{args.output_dir}"
+    file_path = f"results/llama2_13b_error_feedback_responses_{args.dataset}_seed_{args.seed}.json"
     # file_path = f"src/data/annotated_data/eli5_errors_complete_1.jsonl"
     # print(results[0])
     if args.score:
@@ -195,16 +195,3 @@ if __name__ == '__main__':
         print("F1 score: ", f1)
     else:
         score_predictions(args, file_path)
-
-
-        # predictions = [1, 0, 1, 1, 0, 1, 0, 0, 1, 1]
-        # references = [1, 1, 1, 0, 0, 1, 0, 0, 1, 1]
-        # precision, recall, f1 = calculate_precision_recall_f1(predictions, references)
-        # print("Precision: ", precision)
-        # print("Recall: ", recall)
-        # print("F1 score: ", f1)
-
-    # hallucination_scores = [0.0, 0, 1.96]
-    # mean, std = avg_hallucination_score(hallucination_scores)
-    # print("Mean hallucination score: ", mean)
-    # print("Std deviation hallucination score: ", std)

@@ -8,6 +8,7 @@ import re
 from tqdm import tqdm
 
 # set the torch seed
+import datasets
 import torch
 
 from transformers import (
@@ -18,6 +19,7 @@ from transformers import (
 
 from typing import Dict, Iterable, List
 from src.data_creation import utils
+from src.modelling.chat_templates import llm_prompts
 
 
 def self_refine_prompt():
@@ -230,10 +232,32 @@ class SelfRefine:
 def process_inputs(task: str, dataset: str, data: List[Dict]):
     # print(data)
     results = []
+    if dataset == "baseline":
+        # convert to pandas dataframe
+        df = pd.DataFrame(data)
+        dataset = datasets.Dataset.from_pandas(df)
+        dataset = dataset.train_test_split(test_size=0.1, seed=42)["test"]
+        original_columns = dataset.column_names
+
+        def map_dataset(dataset):
+            return dataset.map(
+                lambda x:
+                {
+                    "prompt": llm_prompts.create_llama_base_prompt(has_input=True).format_map(x),
+                    "prediction": x["output"],
+                },
+                # batched=True,
+                remove_columns=original_columns,
+            )
+
+        test_data = map_dataset(dataset)
+        test_data = test_data.shuffle(seed=42)
+        data = test_data
+
     for d in data:
         feedback: Dict[str, Iterable] = {}
 
-        if task == "self_refine" or dataset == "held_out":
+        if task == "self_refine" or dataset in ["baseline", "held_out"]:
             prompt = d["prompt"]
             start_index = prompt.find("Question:") + len("Question:")
             end_index = prompt.find("Answer:")
@@ -290,7 +314,8 @@ if __name__ == '__main__':
     # task = "no_refine"  # "error_detection" or "self_refine" or "no_refine" or "generic_refine"
     data = utils.jload(
         # f"{args.base_path}results/llama2_13b_completeness_feedback_responses_{args.dataset}_seed_{args.seed}_all.jsonl"
-        f"{args.base_path}src/data/annotated_data/{args.dataset}_errors_complete_1.jsonl"
+        # f"{args.base_path}src/data/annotated_data/{args.dataset}_errors_complete_1.jsonl"
+        f"{args.base_path}src/data/incomplete_ans_detection_data.jsonl"
     )
     feedback_samples = process_inputs(task=args.task, dataset=args.dataset, data=data)
     # print(feedback_samples[0])
@@ -370,6 +395,6 @@ if __name__ == '__main__':
 
     # save the outputs
     with open(
-            f"{args.base_path}results/llama2_13b_no_feedback_responses_{args.dataset}_seed_{args.seed}_all.json",
+            f"{args.base_path}results/llama2_13b_error_feedback_responses_{args.dataset}_seed_{args.seed}.json",
             "w") as f:
         utils.jdump(outputs, f)

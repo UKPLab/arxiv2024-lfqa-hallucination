@@ -1,8 +1,10 @@
 import json
 from typing import Any, Dict, List, Union, Tuple
-
+import torch
 import pandas as pd
 import datasets
+import statistics
+from sentence_transformers import SentenceTransformer, util
 
 from src.data_creation import utils
 from src.modelling.chat_templates import llm_prompts
@@ -45,6 +47,18 @@ def load_predictions(predictions_path: str) -> Tuple[List, List]:
     return predictions, consistency
 
 
+def calculate_bertscore(predictions: List[str], references: List[str]) -> Dict[str, Union[float, List[float]]]:
+    from evaluate import load
+    bertscore = load("bertscore")
+    results = bertscore.compute(
+        predictions=predictions,
+        references=references,
+        lang="en",
+        model_type="microsoft/deberta-xlarge-mnli"
+    )
+    return results
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -55,54 +69,104 @@ if __name__ == '__main__':
         "--pred_file_path", type=str,
         default="results/llama2_13b_completeness_feedback_responses_held_out_seed_42.jsonl"
     )
+    parser.add_argument(
+        "--mode", type=str,
+        default="different",
+        help="exact, adjacent, different"
+    )
+
     args = parser.parse_args()
 
     results = load_data(args.file_path)
-    gold_answers = []
+    predictions, consistency = load_predictions(args.pred_file_path)
+
+    gold_spans, gold_answers = [], []
     for result in results:
         output = result["output"]
         sentences = output.split("\n")
 
-        incomplete_sent_ids = []
+        incomplete_sent_ids, incomplete_reasons = [], []
         for i, sent in enumerate(sentences):
             if sent.__contains__("[Incomplete]"):
                 incomplete_sent_ids.append(i+1)
-        gold_answers.append(incomplete_sent_ids)
-    print(gold_answers)
+                incomplete_reasons.append(sent.split("Reasons: ")[1])
+        gold_spans.append(incomplete_sent_ids)
+        gold_answers.append(" ".join(incomplete_reasons))
+    print(gold_spans)
 
-    predictions, consistency = load_predictions(args.pred_file_path)
     # print(predictions)
-    pred_answers = []
+    pred_spans, pred_answers = [], []
     for i, pred in enumerate(predictions):
         sentences = pred.split("\n")
-        incomplete_sent_ids = []
+        incomplete_sent_ids, incomplete_reasons = [], []
         for j, sent in enumerate(sentences):
             if sent.__contains__("[Incomplete]"):
                 incomplete_sent_ids.append(j+1)
-        pred_answers.append(incomplete_sent_ids)
-    print(pred_answers)
+                incomplete_reasons.append(sent.split("Reasons: ")[1])
+        pred_spans.append(incomplete_sent_ids)
+        pred_answers.append(" ".join(incomplete_reasons))
+    print(pred_spans)
 
-    correct, incorrect = 0, 0
-    c_count, i_count = 0, 0
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    exact, adjacent, different = 0, 0, 0
+    e_count, a_count, d_count = 0, 0, 0
     num_samples = len(gold_answers)
-    correct_consistency_score, incorrect_consistency_score = 0, 0
-    for gold, pred, score in zip(gold_answers, pred_answers, consistency):
+    e_consistency_score, a_consistency_score, d_consistency_score = 0, 0, 0
+    e_bertscore, a_bertscore, d_bertscore = 0, 0, 0
+    e_cos_sim, a_cos_sim, d_cos_sim = 0, 0, 0
+    for gold, pred, score, gold_ans, pred_ans in zip(gold_spans, pred_spans, consistency, gold_answers, pred_answers):
         for p in pred:
-            if p in gold or p+1 in gold or p-1 in gold:
-                correct += 1
-                correct_consistency_score += score
-                c_count += 1
+            if p in gold:
+                exact += 1
+                e_consistency_score += score
+                # Compute embedding for both lists
+                embedding_1 = model.encode(pred_ans, convert_to_tensor=True)
+                embedding_2 = model.encode(gold_ans, convert_to_tensor=True)
+                e_cos_sim += util.pytorch_cos_sim(embedding_1, embedding_2).item()
+                # e_bertscore += calculate_bertscore([pred_ans], [gold_ans])["f1"][0]
+
+                e_count += 1
+                break
+            elif p+1 in gold or p-1 in gold:
+                adjacent += 1
+                a_consistency_score += score
+                embedding_1 = model.encode(pred_ans, convert_to_tensor=True)
+                embedding_2 = model.encode(gold_ans, convert_to_tensor=True)
+                a_cos_sim += util.pytorch_cos_sim(embedding_1, embedding_2).item()
+                # a_bertscore += calculate_bertscore([pred_ans], [gold_ans])["f1"][0]
+                a_count += 1
                 break
             else:
-                incorrect += 1
-                incorrect_consistency_score += score
-                i_count += 1
+                different += 1
+                d_consistency_score += score
+                embedding_1 = model.encode(pred_ans, convert_to_tensor=True)
+                embedding_2 = model.encode(gold_ans, convert_to_tensor=True)
+                d_cos_sim += util.pytorch_cos_sim(embedding_1, embedding_2).item()
+                # d_bertscore += calculate_bertscore([pred_ans], [gold_ans])["f1"][0]
+                d_count += 1
                 break
 
-    print(correct, incorrect, num_samples)
-    accuracy = (correct / num_samples) * 100
-    print(accuracy)
-    consistency_score = correct_consistency_score / c_count
-    print(consistency_score)
-    i_consistency_score = incorrect_consistency_score / i_count
-    print(i_consistency_score)
+    # print(correct, incorrect, num_samples)
+    if args.mode == "exact":
+        print("Exact Match")
+        accuracy = (exact / num_samples) * 100
+        consistency_score = e_consistency_score / e_count
+        sbert_score = e_cos_sim / e_count
+        # bertscore = e_bertscore / e_count
+    elif args.mode == "adjacent":
+        print("Adjacent Match")
+        accuracy = (adjacent / num_samples) * 100
+        consistency_score = a_consistency_score / a_count
+        sbert_score = a_cos_sim / a_count
+        # bertscore = a_bertscore / a_count
+    else:
+        print("Different Match")
+        accuracy = (different / num_samples) * 100
+        consistency_score = d_consistency_score / d_count
+        sbert_score = d_cos_sim / d_count
+        # bertscore = d_bertscore / d_count
+
+    print(f"Accuracy: {accuracy}")
+    print(f"Consistency Score: {consistency_score}")
+    # print(f"BertScore: {bertscore}")
+    print(f"Sentence Bert Score: {sbert_score}")
