@@ -5,6 +5,7 @@ This repository contains the code for
 * Creating an expert-annotated hallucination dataset for long-form question answering
 * Methodologies to detect and mitigate hallucinations in long-form question answers
 
+---
 
 ### Dataset
 The dataset is available in the `src/data` folder. The dataset is available in 3 formats:
