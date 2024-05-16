@@ -11,7 +11,7 @@ from typing import Optional
 from peft import LoraConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, HfArgumentParser, GenerationConfig
 from src.modelling.dpo.finetune import smart_tokenizer_and_embedding_resize
-from trl import DPOTrainer
+from trl import DPOTrainer, ORPOConfig, ORPOTrainer
 
 IGNORE_INDEX = -100
 DEFAULT_PAD_TOKEN = "[PAD]"
@@ -89,6 +89,7 @@ class ScriptArguments:
     eval_steps: Optional[int] = field(default=100, metadata={"help": "the evaluation frequency"})
 
     output_dir: Optional[str] = field(default="./results", metadata={"help": "the output directory"})
+    optimization_method: Optional[str] = field(default="dpo", metadata={"help": "the optimization method"})
     log_freq: Optional[int] = field(default=1, metadata={"help": "the logging frequency"})
     seed: Optional[int] = field(default=42, metadata={"help": "seed for the reproducibility"})
 
@@ -211,70 +212,81 @@ class PreferenceModelling:
                 padding="right",
             )  # check
             tokenizer.pad_token = tokenizer.eos_token
-            # 3. initialize training arguments:
-            training_args = TrainingArguments(
-                per_device_train_batch_size=self.args.per_device_train_batch_size,
-                per_device_eval_batch_size=self.args.per_device_eval_batch_size,
-                num_train_epochs=self.args.num_train_epochs,
-                logging_steps=self.args.logging_steps,
-                save_steps=self.args.save_steps,
-                gradient_accumulation_steps=self.args.gradient_accumulation_steps,
-                gradient_checkpointing=self.args.gradient_checkpointing,
-                learning_rate=self.args.learning_rate,
-                evaluation_strategy="steps",
-                eval_steps=self.args.eval_steps,
-                output_dir=self.args.output_dir,
-                report_to=self.args.report_to,
-                lr_scheduler_type=self.args.lr_scheduler_type,
-                warmup_steps=self.args.warmup_steps,
-                warmup_ratio=self.args.warmup_ratio,
-                optim=self.args.optimizer_type,
-                bf16=True,
-                remove_unused_columns=False,
-                run_name=self.args.run_name,
-                seed=self.args.seed,
-            )
 
-            # if you want to use LoRA, you need to specify the config
-            peft_config = LoraConfig(
-                r=self.args.lora_r,
-                lora_alpha=self.args.lora_alpha,
-                lora_dropout=self.args.lora_dropout,
-                target_modules=[
-                    "q_proj",
-                    "v_proj",
-                    "k_proj",
-                    "out_proj",
-                    "fc_in",
-                    "fc_out",
-                    "wte",
-                ],
-                bias="none",
-                task_type="CAUSAL_LM",
-            )
+            if self.args.optimization_method == "dpo":
+                # 3. initialize training arguments:
+                training_args = TrainingArguments(
+                    per_device_train_batch_size=self.args.per_device_train_batch_size,
+                    per_device_eval_batch_size=self.args.per_device_eval_batch_size,
+                    num_train_epochs=self.args.num_train_epochs,
+                    logging_steps=self.args.logging_steps,
+                    save_steps=self.args.save_steps,
+                    gradient_accumulation_steps=self.args.gradient_accumulation_steps,
+                    gradient_checkpointing=self.args.gradient_checkpointing,
+                    learning_rate=self.args.learning_rate,
+                    evaluation_strategy="steps",
+                    eval_steps=self.args.eval_steps,
+                    output_dir=self.args.output_dir,
+                    report_to=self.args.report_to,
+                    lr_scheduler_type=self.args.lr_scheduler_type,
+                    warmup_steps=self.args.warmup_steps,
+                    warmup_ratio=self.args.warmup_ratio,
+                    optim=self.args.optimizer_type,
+                    bf16=True,
+                    remove_unused_columns=False,
+                    run_name=self.args.run_name,
+                    seed=self.args.seed,
+                )
 
-            # 4. initialize the DPO trainer
-            dpo_trainer = DPOTrainer(
-                model,
-                model_ref,
-                args=training_args,
-                beta=self.args.beta,
-                train_dataset=train_dataset,
-                eval_dataset=eval_dataset,
-                tokenizer=tokenizer,
-                max_length=self.args.max_length,
-                max_prompt_length=self.args.max_prompt_length,
-                # peft_config=peft_config,
-                # generate_during_eval=True,
-            )
+                # 4. initialize the DPO trainer
+                trainer = DPOTrainer(
+                    model,
+                    model_ref,
+                    args=training_args,
+                    beta=self.args.beta,
+                    train_dataset=train_dataset,
+                    eval_dataset=eval_dataset,
+                    tokenizer=tokenizer,
+                    max_length=self.args.max_length,
+                    max_prompt_length=self.args.max_prompt_length,
+                )
+            elif self.args.optimization_method == "orpo":
+                orpo_args = ORPOConfig(
+                    learning_rate=self.args.learning_rate,
+                    beta=self.args.beta,
+                    lr_scheduler_type=self.args.lr_scheduler_type,
+                    max_length=self.args.max_length,
+                    max_prompt_length=self.args.max_prompt_length,
+                    per_device_train_batch_size=self.args.per_device_train_batch_size,
+                    per_device_eval_batch_size=self.args.per_device_eval_batch_size,
+                    gradient_accumulation_steps=self.args.gradient_accumulation_steps,
+                    optim="paged_adamw_8bit",
+                    num_train_epochs=self.args.num_train_epochs,
+                    evaluation_strategy="steps",
+                    eval_steps=self.args.eval_steps,
+                    logging_steps=self.args.logging_steps,
+                    warmup_steps=self.args.warmup_steps,
+                    report_to=self.args.report_to,
+                    output_dir=self.args.output_dir,
+                )
+
+                trainer = ORPOTrainer(
+                    model=model,
+                    args=orpo_args,
+                    train_dataset=train_dataset,
+                    eval_dataset=eval_dataset,
+                    tokenizer=tokenizer,
+                )
+            else:
+                raise ValueError("Invalid optimization method")
 
             # 6. train
-            dpo_trainer.train()
-            dpo_trainer.save_model(self.args.output_dir)
+            trainer.train()
+            trainer.save_model(self.args.output_dir)
 
             # 7. save
             output_dir = os.path.join(self.args.output_dir, "final_checkpoint")
-            dpo_trainer.model.save_pretrained(output_dir)
+            trainer.model.save_pretrained(output_dir)
 
         elif self.args.mode == "test":
             print("Testing the model")
