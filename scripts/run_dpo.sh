@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=72:00:00
 #SBATCH --job-name=training
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:2
 #SBATCH --constraint="gpu_mem:80gb"
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=128G
@@ -20,6 +20,7 @@ fi
 # run script
 
 ###### MODELS ######
+
 # mistralai/Mistral-7B-v0.1
 # mistralai/Mistral-7B-Instruct-v0.1
 # meta-llama/Llama-2-7b-chat-hf
@@ -28,16 +29,16 @@ fi
 # "meta-llama/Meta-Llama-3-8B-Instruct"
 
 ####################
+MODEL_NAME="Llama-3-8b-hf-completeness/llama3.8b.sft.completeness.1" # 13b
+run_name="llama3.8b.sft.dpo.completeness" # change this every time you run a new experiment
+output_dir="Llama-3-8b-hf-completeness/llama3.8b.sft.dpo.completeness.1"
 
-MODEL_NAME="meta-llama/Llama-2-7b-hf"
-OUTPUT_DIR="llama2_7B_dpo"
-
-CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
-  --master_port=2568 ${BASE_PATH}/src/modelling/llama3_dpo.py \
+CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=1 \
+  --master_port=2568 ${BASE_PATH}/src/modelling/dpo/preference_modelling.py \
   --model_name_or_path $MODEL_NAME \
   --ref_model_name_or_path $MODEL_NAME \
   --data_path ${BASE_PATH}/src/data/preference_data.csv \
-  --output_dir $OUTPUT_DIR \
+  --output_dir ${output_dir} \
   --num_train_epochs 5  \
   --eval_steps 20 \
   --save_steps 20 \
@@ -49,16 +50,16 @@ CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
   --mode train \
   --max_prompt_length 512 \
   --max_length 1024 \
-  --run_name ${OUTPUT_DIR}
+  --run_name ${run_name}
 
 ## ORPO
 #CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
-#  --master_port=2568 ${BASE_PATH}/src/modelling/preference_modelling.py \
+#  --master_port=2568 ${BASE_PATH}/src/modelling/dpo/preference_modelling.py \
 #  --model_name_or_path $MODEL_NAME \
 #  --ref_model_name_or_path $MODEL_NAME \
 #  --optimization_method "orpo" \
 #  --data_path ${BASE_PATH}/src/data/annotated_data/preference_data_13_03.csv \
-#  --output_dir $OUTPUT_DIR \
+#  --output_dir ${output_dir} \
 #  --num_train_epochs 5  \
 #  --eval_steps 20 \
 #  --save_steps 20 \
@@ -69,4 +70,4 @@ CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
 #  --mode train \
 #  --max_prompt_length 512 \
 #  --max_length 1024 \
-#  --run_name ${OUTPUT_DIR}
+#  --run_name ${run_name}

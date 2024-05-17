@@ -63,7 +63,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--file_path", type=str, default="src/data/annotated_data/incomplete_ans_detection_data_2.jsonl"
+        "--file_path", type=str, default="src/data/incomplete_ans_detection_data.jsonl"
     )
     parser.add_argument(
         "--pred_file_path", type=str,
@@ -92,7 +92,6 @@ if __name__ == '__main__':
                 incomplete_reasons.append(sent.split("Reasons: ")[1])
         gold_spans.append(incomplete_sent_ids)
         gold_answers.append(" ".join(incomplete_reasons))
-    print(gold_spans)
 
     # print(predictions)
     pred_spans, pred_answers = [], []
@@ -105,7 +104,6 @@ if __name__ == '__main__':
                 incomplete_reasons.append(sent.split("Reasons: ")[1])
         pred_spans.append(incomplete_sent_ids)
         pred_answers.append(" ".join(incomplete_reasons))
-    print(pred_spans)
 
     model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
     exact, adjacent, different = 0, 0, 0

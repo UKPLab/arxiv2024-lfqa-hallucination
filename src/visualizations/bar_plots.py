@@ -529,6 +529,7 @@ def plot_aspect_scores():
                                         "References", "Overall"),
                         # shared_yaxes=True,
                         y_title="Aspect score",
+                        vertical_spacing=0.3,
                         )
 
     # subjects = ["physics", "chemistry", "biology", "technology", "economics", "history", "law", "all"]
@@ -545,7 +546,7 @@ def plot_aspect_scores():
             row = 2
             col = i - 3
 
-        print(row, col)
+        # print(row, col)
         # df = pd.read_csv(f"src/data/annotated_data/complete_data_scores1.csv", sep="\t")
         # print(df.head())
         # print(df.columns)
@@ -634,10 +635,10 @@ def plot_aspect_scores():
             row=row, col=col + 1)
         fig.update_layout(barmode='group', bargap=0.2)
         tickangle = -30
-        tickfont = dict(family="Computer Modern", size=14, color='black')
+        tickfont = dict(family="Computer Modern", size=12, color='black')
 
         fig.update_layout(
-            font=dict(family='Times New Roman', size=16, color='black'),
+            font=dict(family='Times New Roman', size=14, color='black'),
             plot_bgcolor='white',  # Set plot background color
             showlegend=showlegend,
             legend=dict(
@@ -758,14 +759,15 @@ def plot_aspect_scores():
 
         )
 
-    # put legend on  right corner
+    # put legend on  right corner  x=0.4 y=1.15
     fig.update_layout(
         legend=dict(
-            orientation="h", y=1.15, x=0.4, font=dict(size=14), traceorder="normal", itemsizing="trace")
+            orientation="h", yanchor="bottom", y=1.1, xanchor="left", x=0.35, font=dict(size=12),
+            traceorder="normal", itemsizing="trace", itemwidth=30)
     )
 
-    fig.update_layout(width=1000, height=500, template="ggplot2", margin=dict(t=10, b=10,), )
-    pio.write_image(fig, "./src/data/plots/aspect_scores3.pdf", scale=5)
+    fig.update_layout(width=700, height=350, template="ggplot2", margin=dict(t=5, b=5), )
+    pio.write_image(fig, "./src/data/plots/aspect_scores4.pdf", scale=5)
 
 
 def length_plot(category: List = [], num_annotators: int = 3):

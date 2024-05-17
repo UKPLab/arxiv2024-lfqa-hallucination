@@ -61,7 +61,6 @@ class AnswerSelector:
             )
 
         eval_data = map_dataset(dataset)
-        print(eval_data)
         return eval_data
 
     def load_data(self, num_samples: Optional[int] = None):
@@ -69,8 +68,6 @@ class AnswerSelector:
         list_data_dict = utils.jload(self.data_path)
         # convert to pandas dataframe
         df = pd.DataFrame(list_data_dict)
-        print(df.head())
-        print(df.shape)
 
         dataset = datasets.Dataset.from_pandas(df)
         if self.dataset == "held_out":
@@ -166,18 +163,18 @@ class AnswerSelector:
                 # print(results[i]["prompt"])
                 # print(results[i]["prediction"])
                 # print("*" * 10)
-                c += 1
-                if c == 1:
-                    break
+                # c += 1
+                # if c == 1:
+                #     break
 
-        # # save results if save file is not present
-        # save_path = f"results/llama2_13b_completeness_feedback_responses_{self.dataset}_seed_{self.seed}_all.jsonl"
-        # if os.path.exists(save_path):
-        #     print("File already exists")
-        # else:
-        #     utils.jdump(results, save_path)
-        # print(f"Results saved to {save_path}")
-        # print(f"Total errors: {c}")
+        # save results if save file is not present
+        save_path = f"results/llama3_8b_dpo_completeness_feedback_responses_{self.dataset}_seed_{self.seed}_all.jsonl"
+        if os.path.exists(save_path):
+            print("File already exists")
+        else:
+            utils.jdump(results, save_path)
+        print(f"Results saved to {save_path}")
+        print(f"Total errors: {c}")
 
 
     def choose_generalization_selfcheck(self, responses):
@@ -208,10 +205,7 @@ class AnswerSelector:
             words = {}
             for w in re.findall(r'\b\w+\b', p):
                 words[w.lower()] = 1
-            print(words)
             premise_words.append(words)
-
-        print(premise_words)
 
         scores = []
         for response in responses:
@@ -230,7 +224,6 @@ class AnswerSelector:
             else:
                 scores.append(0)
 
-        print("Scores: ", scores)
         choice = None
         best = 0
         for i, r in enumerate(responses):
@@ -325,11 +318,9 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
     set_seed(args.seed)
-    # model_path =    #llama.sft.deepspeed.tf.completeness.1"
-    # model_path = "meta-llama/Llama-2-13b-chat-hf"
-    # model_path = "Llama-2-13b-hf-completeness/llama2.sft.deepspeed.tf.completeness.64_32/final_checkpoint_merged"
+
     sc = AnswerSelector(
-        data_path="src/data/annotated_data/incomplete_ans_detection_data_2.jsonl",
+        data_path="src/data/incomplete_ans_detection_data.jsonl",
         # data_path=f"src/data/annotated_data/{args.dataset}_errors_complete_1.jsonl",
         model_path=args.model_path,
         dataset=args.dataset,
@@ -344,7 +335,7 @@ if __name__ == '__main__':
         top_p=0.9,
         top_k=0,
         repetition_penalty=1.18,
-        max_tokens=1024,    # 1024
+        max_tokens=1024,
     )
     sc.generate(
         generate_kwargs=generation_kwargs,

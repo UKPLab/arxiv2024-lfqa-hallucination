@@ -16,56 +16,82 @@ for preference optimization.
 3. `incomplete_ans_detection_data.csv`: Contains the expert annotated data for incomplete answers. This dataset is used for 
 training the incomplete answer detection model. This is used as our error feedback model in the feedback-assisted refinement approach.
 
+---
 
-### Incomplete Answer Detection Model
+### Requirements
+```bash
+pip install -r requirements.txt
+```
+
+### Usage
+All the scripts are present in the 'src/scripts' folder. The important scripts are described below.
+
+#### <u>Incomplete Answer Detection Model</u>
 
 1. **Training**: The model can be trained using the following command:
 
 ```bash
-torchrun --nproc_per_node=2 \
-  --master_port=2568 ${BASE_PATH}/src/modelling/dpo/finetune.py \
-  --model_name_or_path meta-llama/Llama-2-7b-hf \
-  --data_path src/data/annotated_data/incomplete_ans_detection_data.jsonl \
-  --bf16 True \
-  --output_dir llama.sft.deepspeed.tf.completeness.1 \
-  --num_train_epochs 3  \
-  --per_device_train_batch_size 1 \
-  --per_device_eval_batch_size 1 \
-  --gradient_accumulation_steps 8 \
-  --evaluation_strategy "steps" \
-  --eval_steps 50 \
-  --save_strategy "steps" \
-  --save_steps 300 \
-  --save_total_limit 1 \
-  --learning_rate 2e-5 \
-  --weight_decay 0. \
-  --warmup_ratio 0.01 \
-  --lr_scheduler_type "cosine" \
-  --logging_steps 10 \
-  --report_to "wandb" \
-  --run_name "llama_completeness_sft" \
-  --fsdp "full_shard auto_wrap"
+MASTER_PORT=4638
+MODEL_DIR="Llama-2-13b-hf-completeness" # 7b
+run_name="llama.sft.deepspeed.tf.completeness.1" # change this every time you run a new experiment
+
+output_dir="${BASE_PATH}/${MODEL_DIR}/${run_name}"
+mkdir -p ${output_dir}
+
+CUDA_VISIBLE_DEVICES=0,1 deepspeed \
+    --num_gpus 2 \
+    --num_nodes 1 \
+    --master_port ${MASTER_PORT} \
+    ${BASE_PATH}/src/modelling/dpo/sft.py \
+    --model_name meta-llama/Llama-2-7b-hf \
+    --data_path "src/data/incomplete_ans_detection_data.jsonl" \
+    --bf16 True \
+    --use_lora False \
+    --output_dir ${output_dir} \
+    --num_train_epochs 5 \
+    --per_device_train_batch_size 1 \
+    --per_device_eval_batch_size 1 \
+    --gradient_accumulation_steps 4 \
+    --evaluation_strategy "no" \
+    --save_strategy "epoch" \
+    --save_steps 64 \
+    --save_total_limit 2 \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.05  \
+    --lr_scheduler_type "cosine" \
+    --logging_steps 2 \
+    --deepspeed ${BASE_PATH}/src/modelling/dpo/ds_llama_config.json \
+    --run_name ${run_name} \
+    --seed 42 
 ```
 
 2. **Inference**: We use consistency sampling to select the best answer from the model predictions. The model can be run using the following command:
 
 ```bash
-python ${BASE_PATH}/src/modelling/answer_selector.py \
+python ${BASE_PATH}/src/modelling/inference/answer_selector.py \
 --dataset "held_out" \
 --seed 42  \
 --model_path "Llama-2-13b-hf-completeness/llama.sft.deepspeed.tf.completeness.1" 
 ```
 
+3. **Evaluation**: The model can be evaluated using the following command:
 
-### Training the Preference Optimization Model
+```bash
+python ${BASE_PATH}/src/modelling/evaluation/error_model_eval.py \
+pred_file_path "results/llama2_13b_completeness_feedback_responses_held_out_seed_42_all.jsonl" \
+--mode "exact"  # or "adjacent" or "different"
+```
+
+#### <u>Training the Preference Optimization Model</u>
 The model can be trained using the following command:
 
 ```bash 
 MODEL_NAME="meta-llama/Llama-2-7b-hf"
-OUTPUT_DIR="llama2_7B_dpo"
+OUTPUT_DIR="llama2_7b_dpo"
 
 CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
-  --master_port=2568 ${BASE_PATH}/src/modelling/llama3_dpo.py \
+  --master_port=2568 ${BASE_PATH}/src/modelling/dpo/preference_modelling.py \
   --model_name_or_path $MODEL_NAME \
   --ref_model_name_or_path $MODEL_NAME \
   --data_path ${BASE_PATH}/src/data/preference_data.csv \
@@ -85,7 +111,7 @@ CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
 ```
 
 
-### Error-informed Refinement
+#### <u>Error-informed Refinement</u>
 The error-informed refinement can be run using the following command:
 
 ```bash

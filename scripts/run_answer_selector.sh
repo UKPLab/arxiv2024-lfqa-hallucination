@@ -18,7 +18,9 @@ if [ -f .env ]; then
 fi
 
 
-python ${BASE_PATH}/src/modelling/answer_selector.py \
+python ${BASE_PATH}/src/modelling/inference/answer_selector.py \
 --dataset "held_out" \
 --seed 42  \
---model_path "Llama-2-13b-hf-completeness/llama.sft.deepspeed.tf.completeness.1" \
+--model_path "Llama-3-8b-hf-completeness/llama3.8b.sft.dpo.completeness.1" \
+
+# "Llama-2-13b-hf-completeness/llama.sft.deepspeed.tf.completeness.1"
