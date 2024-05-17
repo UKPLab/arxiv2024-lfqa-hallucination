@@ -26,7 +26,7 @@ pip install -r requirements.txt
 ### Usage
 All the scripts are present in the 'src/scripts' folder. The important scripts are described below.
 
-#### <u>Incomplete Answer Detection Model</u>
+#### <ins>Incomplete Answer Detection Model</ins>
 
 1. **Training**: The model can be trained using the following command:
 
@@ -83,7 +83,7 @@ pred_file_path "results/llama2_13b_completeness_feedback_responses_held_out_seed
 --mode "exact"  # or "adjacent" or "different"
 ```
 
-#### <u>Training the Preference Optimization Model</u>
+#### <ins>Training the Preference Optimization Model</ins>
 The model can be trained using the following command:
 
 ```bash 
@@ -111,7 +111,7 @@ CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
 ```
 
 
-#### <u>Error-informed Refinement</u>
+#### <ins>Error-informed Refinement</ins>
 The error-informed refinement can be run using the following command:
 
 ```bash
