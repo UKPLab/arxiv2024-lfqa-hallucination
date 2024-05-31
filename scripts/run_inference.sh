@@ -17,18 +17,18 @@ if [ -f .env ]; then
 fi
 
 DATASETS=(
-"held_out" \
-#"asqa" \
+#"held_out" \
+"asqa" \
 #"eli5" \
 #"eli5_science" \
 #"eli5_history" \
 )
 DO_SAMPLE="false"
-SEED=42
+SEED=0
 #MODEL_NAME="meta-llama/Llama-2-7b-chat-hf"
 #MODEL_NAME="meta-llama/Meta-Llama-3-8B-Instruct"
 #MODEL_NAME="llama3_8b_instruct_dpo_v1"
-MODEL_NAME="llama2_7B_orpo"
+MODEL_NAME="meta-llama/Llama-2-13b-chat-hf"
 # split model name with / and get the last element
 echo $MODEL_NAME | awk -F'/' '{print $NF}'
 # llama2_chat_dpo_13_03
@@ -39,19 +39,21 @@ if [ ${DO_SAMPLE} = false ]; then
   for DATASET in "${DATASETS[@]}"
   do
       echo "Running inference for model: ${MODEL_NAME}, dataset: ${DATASET} in normal mode."
-      python ${BASE_PATH}/src/modelling/llm_inference.py \
+      python ${BASE_PATH}/src/modelling/inference/llm_inference.py \
       --dataset ${DATASET} \
       --model_name ${MODEL_NAME} \
-      --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_${DATASET}_seed_${SEED}.jsonl"
+      --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_${DATASET}_seed_${SEED}.jsonl"  \
+      --seed ${SEED}
   done
 else
   for DATASET in "${DATASETS[@]}"
   do
       echo "Running inference for model: ${MODEL_NAME}, dataset: ${DATASET} in sampling mode."
-      python ${BASE_PATH}/src/modelling/llm_inference.py \
+      python ${BASE_PATH}/src/modelling/inference/llm_inference.py \
       --dataset ${DATASET} \
       --model_name ${MODEL_NAME} \
       --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_sampled_${DATASET}_seed_${SEED}.jsonl" \
-      --do_sample
+      --do_sample  \
+      --seed ${SEED}
   done
 fi

@@ -168,7 +168,7 @@ class AnswerSelector:
                 #     break
 
         # save results if save file is not present
-        save_path = f"results/llama3_8b_dpo_completeness_feedback_responses_{self.dataset}_seed_{self.seed}_all.jsonl"
+        save_path = f"results/llama2_13b_dpo_completeness_feedback_responses_long_{self.dataset}_seed_{self.seed}.jsonl"
         if os.path.exists(save_path):
             print("File already exists")
         else:
@@ -335,7 +335,7 @@ if __name__ == '__main__':
         top_p=0.9,
         top_k=0,
         repetition_penalty=1.18,
-        max_tokens=1024,
+        max_tokens=2048,
     )
     sc.generate(
         generate_kwargs=generation_kwargs,

@@ -1078,7 +1078,7 @@ def plotly_wordcloud():
     aspects_studied_color = "rgba(210, 238, 130, 1)"
 
     word_color_map = {
-        'comprehensive': aspects_new_color,
+        'comprehensive': aspects_studied_color,
         'concise': aspects_new_color,
         'understand': aspects_new_color,
         'easier': aspects_new_color,
@@ -1150,7 +1150,7 @@ def plotly_wordcloud():
 
         )
     )
-    fig.update_layout(width=800, height=500, template="ggplot2", margin=dict(t=10, b=10, ), )
+    fig.update_layout(width=1000, height=400, template="ggplot2", margin=dict(t=10, b=10, ))
     pio.write_image(fig, "./src/data/plots/ans_reason_frequency.pdf", scale=5)
 
 
@@ -1192,6 +1192,6 @@ if __name__ == '__main__':
     # create_pie_chart()
     # plot_aspect_score_charts()
     # plot_avg_aspect_score()
-    plot_aspect_scores()
+    # plot_aspect_scores()
     # create_aspect_importance_chart()
-    # plotly_wordcloud()
+    plotly_wordcloud()

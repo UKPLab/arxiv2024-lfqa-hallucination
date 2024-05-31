@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=72:00:00
 #SBATCH --job-name=training
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --constraint="gpu_mem:80gb"
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=128G
@@ -29,16 +29,17 @@ fi
 # "meta-llama/Meta-Llama-3-8B-Instruct"
 
 ####################
-MODEL_NAME="Llama-3-8b-hf-completeness/llama3.8b.sft.completeness.1" # 13b
-run_name="llama3.8b.sft.dpo.completeness" # change this every time you run a new experiment
-output_dir="Llama-3-8b-hf-completeness/llama3.8b.sft.dpo.completeness.1"
+MODEL_NAME="meta-llama/Llama-2-13b-chat-hf" # 13b
+run_name="llama2.13b.sft.dpo" # change this every time you run a new experiment
+output_dir="llama2_13b_dpo_full"   #"Llama-3-8b-hf-completeness/llama3.8b.sft.dpo.completeness.1"
 
-CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=1 \
-  --master_port=2568 ${BASE_PATH}/src/modelling/dpo/preference_modelling.py \
+CUDA_VISIBLE_DEVICES=0 python ${BASE_PATH}/src/modelling/dpo/preference_modelling.py \
   --model_name_or_path $MODEL_NAME \
   --ref_model_name_or_path $MODEL_NAME \
   --data_path ${BASE_PATH}/src/data/preference_data.csv \
   --output_dir ${output_dir} \
+  --lora_r 256 \
+  --lora_alpha 128 \
   --num_train_epochs 5  \
   --eval_steps 20 \
   --save_steps 20 \

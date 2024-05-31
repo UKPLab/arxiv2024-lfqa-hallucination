@@ -19,12 +19,19 @@ fi
 
 TASK="self_refine"
 DATASETS=(
-"baseline" \
-#"held_out" \
+#"baseline" \
+"held_out" \
 #"asqa" \
 #"eli5" \
 )
 SEEDS=(42 0 1)
+
+# llama3_8b_instruct_dpo_v1
+#"llama2_7b_chat_dpo_13_03"
+# llama2_13b_dpo_8bit
+# meta-llama/Llama-2-7b-chat-hf
+# llama2_13b_dpo_full/final_checkpoint
+# meta-llama/Meta-Llama-3-8B-Instruct
 
 for SEED in "${SEEDS[@]}"
 do
@@ -32,6 +39,9 @@ do
   do
       echo "Running ${TASK} for dataset: ${DATASET}."
       python ${BASE_PATH}/src/modelling/self_refine.py \
+      --model_path meta-llama/Llama-2-13b-chat-hf \
+      --feedback_file_path "llama2_13b_completeness_feedback_responses_${DATASET}_seed_${SEED}.jsonl" \
+      --output_dir llama2_13b_baseline_feedback_responses_${DATASET}_seed_${SEED}.json \
       --dataset ${DATASET} \
       --task ${TASK} \
       --seed ${SEED}

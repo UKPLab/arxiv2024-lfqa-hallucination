@@ -6,13 +6,13 @@ import datasets
 
 from vllm import LLM, SamplingParams
 from src.evaluation import tiger_score
+from src.data_creation import utils
 from src.modelling.chat_templates.llm_prompts import \
     create_llama_prompt, \
     create_mistral_prompt
 
 import torch
-SEED = 42
-torch.manual_seed(SEED)
+
 
 
 PROMPT_DICT = {
@@ -62,6 +62,7 @@ if __name__ == '__main__':
     parser.add_argument("--model_name", type=str, default="mistralai/Mistral-7B-Instruct-v0.1")
     parser.add_argument("--output_dir", type=str, default="mistral_instruct_held_out.jsonl")
     parser.add_argument("--do_sample", action="store_true")
+    parser.add_argument("--seed", type=int, default=42)
 
     args = parser.parse_args()
     # dataset = "held_out"
@@ -72,23 +73,26 @@ if __name__ == '__main__':
     # data = datasets.load_dataset("hf_datasets/eli5", "test_eli5").select(range(100))
     # range 100 gets 0-100 samples but i want 100 random samples
 
+    torch.manual_seed(args.seed)
+
     if args.dataset == "asqa":
         asqa_data = datasets.load_dataset("din0s/asqa")
-        data = asqa_data["dev"].shuffle(seed=SEED)#.select(range(100))
+        data = asqa_data["dev"].shuffle(seed=42)#.select(range(100))
     elif args.dataset == "eli5":
         eli5_data = datasets.load_dataset("eli5_category")
-        data = eli5_data["test"].shuffle(seed=SEED).select(range(1000))
+        data = eli5_data["test"].shuffle(seed=42) #.select(range(1000))
     elif args.dataset == "eli5_history":
         eli5_data = datasets.load_dataset("Pavithree/eli5")
         data = eli5_data["test"].filter(lambda example: example["subreddit"] == "AskHistorians")
-        data = data.shuffle(seed=SEED).select(range(1000))
+        data = data.shuffle(seed=42).select(range(1000))
     elif args.dataset == "eli5_science":
         eli5_data = datasets.load_dataset("Pavithree/eli5")
         data = eli5_data["test"].filter(lambda example: example["subreddit"] == "askscience")
-        data = data.shuffle(seed=SEED).select(range(1000))
+        data = data.shuffle(seed=42).select(range(1000))
     elif args.dataset == "held_out":
-        file_path = f"results_llama2_base.jsonl"
-        data = tiger_score.read_results(file_path)
+        file_path = "results/llama2_13b_completeness_feedback_responses_held_out_seed_42.jsonl" #f"results_llama2_base.jsonl"
+        # data = tiger_score.read_results(file_path)
+        data = utils.jload(file_path)
 
     # print(data.shape)
     # print(data.column_names)
@@ -103,7 +107,7 @@ if __name__ == '__main__':
         # top_k=1,
         max_tokens=512,
         skip_special_tokens=True,
-        seed=SEED
+        seed=args.seed
     )
 
     results = []
@@ -115,8 +119,9 @@ if __name__ == '__main__':
         elif args.dataset == "asqa":
             question = sample["ambiguous_question"]
         elif args.dataset == "held_out":
-            sample = ast.literal_eval(sample)
-            question = sample["prompt"].split("Question: ")[1].split("\n")[0]
+            # sample = ast.literal_eval(sample)
+            question = sample["prompt"].split("Question: ")[1].split("\n")[0].strip()
+            # print(question)
 
         if args.do_sample:
             print("doing sampling")

@@ -76,9 +76,9 @@ class ScriptArguments:
         default=True, metadata={"help": "whether to use gradient checkpointing"}
     )
 
-    lora_alpha: Optional[float] = field(default=16, metadata={"help": "the lora alpha parameter"})
+    lora_alpha: Optional[float] = field(default=64, metadata={"help": "the lora alpha parameter"})
     lora_dropout: Optional[float] = field(default=0.05, metadata={"help": "the lora dropout parameter"})
-    lora_r: Optional[int] = field(default=8, metadata={"help": "the lora r parameter"})
+    lora_r: Optional[int] = field(default=32, metadata={"help": "the lora r parameter"})
 
     max_prompt_length: Optional[int] = field(default=512, metadata={"help": "the maximum prompt length"})
     max_length: Optional[int] = field(default=1024, metadata={"help": "the maximum sequence length"})
@@ -189,7 +189,7 @@ class PreferenceModelling:
                 self.args.model_name_or_path,
                 low_cpu_mem_usage=True,
                 torch_dtype=torch.float16,
-                # load_in_4bit=True,  # check TODO
+                # load_in_8bit=True,  # check TODO
                 # device_map={'': torch.cuda.current_device()},
             )
             model.config.use_cache = False
@@ -201,12 +201,12 @@ class PreferenceModelling:
                 ]
 
             # --- trying using the same model ---
-            model_ref = AutoModelForCausalLM.from_pretrained(
-                self.args.ref_model_name_or_path,
-                low_cpu_mem_usage=True,
-                torch_dtype=torch.float16,
-                # load_in_4bit=True,  # check TODO
-            )
+            # model_ref = AutoModelForCausalLM.from_pretrained(
+            #     self.args.ref_model_name_or_path,
+            #     low_cpu_mem_usage=True,
+            #     torch_dtype=torch.float16,
+            #     load_in_4bit=True,  # check TODO
+            # )
             tokenizer = AutoTokenizer.from_pretrained(
                 self.args.model_name_or_path,
                 padding="right",
@@ -238,15 +238,33 @@ class PreferenceModelling:
                     seed=self.args.seed,
                 )
 
+                peft_config = LoraConfig(
+                    r=self.args.lora_r,
+                    lora_alpha=self.args.lora_alpha,
+                    lora_dropout=self.args.lora_dropout,
+                    target_modules=[
+                        "q_proj",
+                        "v_proj",
+                        "k_proj",
+                        "out_proj",
+                        "fc_in",
+                        "fc_out",
+                        "wte",
+                    ],
+                    bias="none",
+                    task_type="CAUSAL_LM",
+                )
+
                 # 4. initialize the DPO trainer
                 trainer = DPOTrainer(
                     model,
-                    model_ref,
+                    ref_model=None,
                     args=training_args,
                     beta=self.args.beta,
                     train_dataset=train_dataset,
                     eval_dataset=eval_dataset,
                     tokenizer=tokenizer,
+                    # peft_config=peft_config,
                     max_length=self.args.max_length,
                     max_prompt_length=self.args.max_prompt_length,
                 )

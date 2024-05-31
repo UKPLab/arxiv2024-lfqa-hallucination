@@ -110,14 +110,14 @@ class SelfRefine:
         if self.device == "cuda":
             kwargs = {"torch_dtype": torch.float16}
         self.model, self.tokenizer = self.load_model(kwargs)
-        self.model.to(self.device)
+        # self.model.to(self.device)
 
     def load_model(self, from_pretrained_kwargs: dict):
         print("MODEL LOADING...")
         revision = from_pretrained_kwargs.get("revision", "main")
         try:
             tokenizer = AutoTokenizer.from_pretrained(
-                self.model_path,
+                self.model_path,    # self.model_path,
                 use_fast=True,
                 revision=revision,
                 trust_remote_code=True,
@@ -128,7 +128,8 @@ class SelfRefine:
             )
         try:
             model = AutoModelForCausalLM.from_pretrained(
-                self.model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs
+                self.model_path, low_cpu_mem_usage=True, **from_pretrained_kwargs,
+                device_map="auto"
             )
         except NameError:
             model = AutoModel.from_pretrained(
@@ -288,6 +289,7 @@ def process_inputs(task: str, dataset: str, data: List[Dict]):
 
             feedback["error_sentence"] = error_sentences
             feedback["reason"] = reasons
+            # break
         elif task in ["no_refine", "generic_refine"]:
             feedback["question"] = d["question"]
             feedback["answer"] = d["answer"]
@@ -303,6 +305,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", type=str, required=True, default="no_refine")
     parser.add_argument("--model_path", type=str, required=False, default="meta-llama/Llama-2-13b-chat-hf")
+    parser.add_argument("--feedback_file_path", type=str, required=False, default="")
+    parser.add_argument("--output_dir", type=str, required=True, default="",
+                        help="path to the output directory")
     parser.add_argument("--base_path", type=str, required=False,
                         default="/storage/ukp/work/sachdeva/research_projects/lfqa-eval/")
     parser.add_argument("--dataset", type=str, required=True, default="held_out")
@@ -313,9 +318,9 @@ if __name__ == '__main__':
 
     # task = "no_refine"  # "error_detection" or "self_refine" or "no_refine" or "generic_refine"
     data = utils.jload(
-        # f"{args.base_path}results/llama2_13b_completeness_feedback_responses_{args.dataset}_seed_{args.seed}_all.jsonl"
+        f"{args.base_path}results/{args.feedback_file_path}"
         # f"{args.base_path}src/data/annotated_data/{args.dataset}_errors_complete_1.jsonl"
-        f"{args.base_path}src/data/incomplete_ans_detection_data.jsonl"
+        # f"{args.base_path}src/data/incomplete_ans_detection_data.jsonl"
     )
     feedback_samples = process_inputs(task=args.task, dataset=args.dataset, data=data)
     # print(feedback_samples[0])
@@ -394,7 +399,7 @@ if __name__ == '__main__':
         )
 
     # save the outputs
-    with open(
-            f"{args.base_path}results/llama2_13b_error_feedback_responses_{args.dataset}_seed_{args.seed}.json",
-            "w") as f:
+    print(f"Saving results to {args.base_path}results/{args.output_dir}")
+    with open(f"{args.base_path}results/{args.output_dir}", "w") as f:
+        print(f"Saving results to {args.base_path}results/{args.output_dir}")
         utils.jdump(outputs, f)

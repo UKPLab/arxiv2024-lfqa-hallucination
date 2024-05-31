@@ -40,4 +40,6 @@ src/modelling/dpo/llama3_orpo.py
 src/modelling/inference/test_inference.py
 src/modelling/inference/llama3_inference.py
 
+src/self_refine2.py
+
 src/prompts

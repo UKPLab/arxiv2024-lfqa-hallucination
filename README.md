@@ -108,6 +108,27 @@ CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 \
   --max_prompt_length 512 \
   --max_length 1024 \
   --run_name ${OUTPUT_DIR}
+  
+  =====LoRA Training=====
+CUDA_VISIBLE_DEVICES=0 python ${BASE_PATH}/src/modelling/dpo/preference_modelling.py \
+  --model_name_or_path $MODEL_NAME \
+  --ref_model_name_or_path $MODEL_NAME \
+  --data_path ${BASE_PATH}/src/data/preference_data.csv \
+  --output_dir ${output_dir} \
+  --lora_r 256 \
+  --lora_alpha 128 \
+  --num_train_epochs 5  \
+  --eval_steps 20 \
+  --save_steps 20 \
+  --learning_rate 5e-5 \
+  --weight_decay 0. \
+  --warmup_ratio 0.1 \
+  --lr_scheduler_type "cosine" \
+  --beta 0.1 \
+  --mode train \
+  --max_prompt_length 512 \
+  --max_length 1024 \
+  --run_name ${run_name}
 ```
 
 
@@ -133,6 +154,38 @@ do
       --dataset ${DATASET} \
       --task ${TASK} \
       --seed ${SEED}
+  done
+done
+```
+
+#### <ins>Hallucination evaluation using TigerScore</ins>
+
+The hallucination detection can be run using the following command:
+
+```bash
+DATASETS=(
+#"baseline" \
+"held_out" \
+#"asqa" \
+#"eli5" \
+#"eli5_science" \
+#"eli5_history" \
+)
+
+MODEL_NAME="Llama-2-13b-chat-hf"
+
+SEEDS=(42 0 1)
+
+for SEED in "${SEEDS[@]}"
+do
+  for DATASET in "${DATASETS[@]}"
+  do
+    echo "Evaluating ${MODEL_NAME} on ${DATASET} with seed ${SEED}"
+    python ${BASE_PATH}/src/evaluation/tiger_score.py \
+    --model_name $MODEL_NAME \
+    --output_dir "$(echo $MODEL_NAME | awk -F'/' '{print $NF}')_${DATASET}_seed_${SEED}.jsonl"  \
+    --dataset ${DATASET} \
+    --seed ${SEED}
   done
 done
 ```
