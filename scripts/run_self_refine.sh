@@ -20,9 +20,9 @@ fi
 TASK="self_refine"
 DATASETS=(
 #"baseline" \
-"held_out" \
+#"held_out" \
 #"asqa" \
-#"eli5" \
+"eli5" \
 )
 SEEDS=(42 0 1)
 
@@ -40,7 +40,7 @@ do
       echo "Running ${TASK} for dataset: ${DATASET}."
       python ${BASE_PATH}/src/modelling/self_refine.py \
       --model_path meta-llama/Llama-2-13b-chat-hf \
-      --feedback_file_path "llama2_13b_completeness_feedback_responses_${DATASET}_seed_${SEED}.jsonl" \
+      --feedback_file_path "llama2_13b_completeness_feedback_responses_${DATASET}_seed_${SEED}_all.jsonl" \
       --output_dir llama2_13b_baseline_feedback_responses_${DATASET}_seed_${SEED}.json \
       --dataset ${DATASET} \
       --task ${TASK} \

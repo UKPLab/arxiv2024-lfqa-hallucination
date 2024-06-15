@@ -1,12 +1,18 @@
 """
 Utility functions for the scraped data
 """
-import os.path
-
 from tqdm import tqdm
 import jsonlines
 import ast
 import statistics
+
+import os
+import os.path
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_PATH = os.getenv('BASE_PATH')
 
 
 def deduplicate(filepath):
@@ -141,10 +147,8 @@ def select_best_instances(filepath, category):
 
 
 if __name__ == '__main__':
-    filepath = "/home/rachneet/projects/lfqa-eval/src/data/"
+    filepath = f"{BASE_PATH}/src/data/"
     # deduplicate(filepath)
     # filter_category(filepath, category="Physics")
     # process_qa_pairs(filepath, category="Mathematics")
     select_best_instances(filepath, category="History")
-    # x = "it's not really a unit of density, it's just a mathematical formula that we've found correlates decently with someone's health (specifically to be used as a rough marker for obesity). so yeah in theory if it was density then that would make sense, but the unit just follows the formula which is weight/height^2"
-    # print(len(x.split()))

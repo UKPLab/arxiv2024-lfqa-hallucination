@@ -82,6 +82,5 @@ def question_rating_gen():
 
 if __name__ == '__main__':
     filepath = "/src/data/scraped_eli5/"
-    # filepath = "/storage/ukp/work/sachdeva/research_projects/lfqa-eval/src/data/scraped_eli5/"
     # old gpt-4-0314
     zero_shot_gen(filepath, model_name="gpt-4-0314", category="Mathematics")

@@ -17,3 +17,4 @@ bitsandbytes>=0.41.1
 protobuf
 wandb
 vllm
+python-dotenv

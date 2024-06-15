@@ -18,15 +18,15 @@ fi
 
 DATASETS=(
 #"baseline" \
-"held_out" \
+#"held_out" \
 #"asqa" \
-#"eli5" \
+"eli5" \
 #"eli5_science" \
 #"eli5_history" \
 )
 
-MODEL_NAME="Llama-2-13b-chat-hf"
-#MODEL_NAME="final_checkpoint_merged"
+#MODEL_NAME="Llama-2-13b-chat-hf"
+MODEL_NAME="llama2_13b_error_feedback_responses"
 #MODEL_NAME="llama2_13b_dpo_8bit_256_128"
 #MODEL_NAME="llama2_7b_chat_dpo_13_03"
 #MODEL_NAME="mistralai/Mistral-7B-Instruct-v0.1"

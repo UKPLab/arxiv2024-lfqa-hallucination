@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from datetime import datetime
 from collections import defaultdict
 import tqdm, json, praw, argparse, pdb, re
@@ -21,6 +22,10 @@ reddit = praw.Reddit(
     client_id=client_id,
     client_secret=client_secret
 )
+
+load_dotenv()
+
+BASE_PATH = os.getenv('BASE_PATH')
 
 
 def scrape_comments(filepath, category):
@@ -91,6 +96,5 @@ def scrape_comments(filepath, category):
 
 
 if __name__ == '__main__':
-    filepath = "/home/rachneet/projects/lfqa-eval/src/data/scraped_eli5/"
-    # filepath = "/storage/ukp/work/sachdeva/research_projects/lfqa-eval/src/data/scraped_eli5/"
+    filepath = f"{BASE_PATH}/src/data/scraped_eli5/"
     scrape_comments(filepath, category="Mathematics")

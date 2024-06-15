@@ -30,7 +30,6 @@ src/annotation/meta_annotation.py
 src/modelling/quantization.py
 src/modelling/merge_adapters.py
 src/modelling/llama_flash_att_monkey_patch.py
-src/modelling/error_detection.py
 src/modelling/completeness_pipeline.py
 
 src/modelling/dpo/sft_classification.py

@@ -530,6 +530,24 @@ def get_top_k_aspect_words(path, layer, k):
     return combined_word_freq
 
 
+def annotation_stats():
+    file_path = "src/data/annotated_data/complete_data_scores.csv"
+    df = pd.read_csv(file_path, sep="\t")
+    # gent non-null values in columns
+    aspects = ["ques_misconception", "factuality", "irrelevance", "incomplete_ans", "reference_example"]
+    sum_count = 0
+    count = 0
+    for aspect in aspects:
+        print(f"Aspect: {aspect}")
+        column = f"{aspect}_label"
+        for value in df[column]:
+            if value is not np.nan:
+                count += len(ast.literal_eval(value))
+        print(f"Count: {count}")
+        sum_count += count
+    print(f"Total count: {sum_count}")
+
+
 if __name__ == '__main__':
 
     # # get annotator data
@@ -557,7 +575,9 @@ if __name__ == '__main__':
     #                 num_annotator += 1
 
     # path = "data/prolific/pilot_results_bio_v0/lfqa_pilot_complete.csv"
-    path = "src/data/annotated_data/complete_data_scores.csv"
+    # path = "src/data/annotated_data/complete_data_scores.csv"
     # layer_wise_analysis(path, "reference_example")
-    get_top_k_words(path, "ans_preference", 100)
+    # get_top_k_words(path, "ans_preference", 100)
     # get_top_k_aspect_words(path, "incomplete_ans", 50)
+
+    annotation_stats()

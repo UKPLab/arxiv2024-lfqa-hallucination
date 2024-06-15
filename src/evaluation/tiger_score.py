@@ -41,12 +41,13 @@ def postprocess_predictions(prediction):
 def score_predictions(args, file_path: str):
     from tigerscore import TIGERScorer
     scorer = TIGERScorer(model_name="TIGER-Lab/TIGERScore-7B", use_vllm=True)  # on GPU
-    results = read_results(file_path)
+    # results = read_results(file_path)
     # print(results)
-    # results = utils.jload(file_path)
+    results = utils.jload(file_path)
     eval_results = []
     for result in tqdm(results):
-        result = ast.literal_eval(result)
+        # result = ast.literal_eval(result)
+        # print(result)
         prediction = postprocess_predictions(result["prediction"])    # prediction
         # print(prediction)
         # instruction = "Answer the given question."
@@ -170,9 +171,9 @@ if __name__ == '__main__':
                         help="random seed for reproducibility")
 
     args = parser.parse_args()
-    file_path = f"experiments/results_{args.output_dir}"
-    # file_path = f"results/{args.model_name}_{args.dataset}_seed_{args.seed}.json"
-    # file_path = f"src/data/annotated_data/eli5_errors_complete_1.jsonl"
+    # file_path = f"experiments/results_{args.output_dir}"
+    file_path = f"results/{args.model_name}_{args.dataset}_seed_{args.seed}_all.json"
+    # file_path = f"src/data/annotated_data/asqa_errors_complete.jsonl"
     # print(results[0])
     if args.score:
         check_errors(args.output_dir)

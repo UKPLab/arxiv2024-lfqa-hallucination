@@ -309,7 +309,7 @@ if __name__ == '__main__':
     parser.add_argument("--output_dir", type=str, required=True, default="",
                         help="path to the output directory")
     parser.add_argument("--base_path", type=str, required=False,
-                        default="/storage/ukp/work/sachdeva/research_projects/lfqa-eval/")
+                        default="")
     parser.add_argument("--dataset", type=str, required=True, default="held_out")
     parser.add_argument("--seed", type=int, required=True, default=42)
 

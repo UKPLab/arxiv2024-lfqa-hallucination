@@ -15,10 +15,15 @@ from bertopic import BERTopic
 
 # assert torch.cuda.is_available() == True
 
-if torch.cuda.is_available():
-    PATH = "/storage/ukp/work/sachdeva/research_projects/lfqa-eval/src/data/scraped_eli5/"
-else:
-    PATH = "/home/rachneet/projects/lfqa-eval/src/data/scraped_eli5/"
+# export base path from .env
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_PATH = os.getenv('BASE_PATH')
+
+PATH = f"{BASE_PATH}/src/data/scraped_eli5/"
 
 
 def cluster_questions():
