@@ -10,7 +10,7 @@ This repository contains the code for
 ### Dataset
 The dataset is available in the `src/data` folder. The dataset is available in 3 formats:
 
-1. `complete_data.csv`: Contains the expert annotated data along with the hallucination detection labels, reasons and scores.
+1. `HaluQuestQA.csv`: Contains the expert annotated data along with the hallucination detection labels, reasons and scores.
 2. `preference_data.csv`: Contains the expert annotators' preferences for human and model answers. This dataset is used
 for preference optimization.
 3. `incomplete_ans_detection_data.csv`: Contains the expert annotated data for incomplete answers. This dataset is used for 
