@@ -23,6 +23,15 @@ training the incomplete answer detection model. This is used as our error feedba
 
 #### Structure of HaluQuestQA
 
+The dataset contains span-level annotations for errors in long-form answers as per our defined evaluation criteria:
+1. **Question misconception**: False assumptions made within the given question. 
+2. **Factuality**: Accuracy and correctness of the answer as per verifiable facts.
+3. **Relevance**: Specificity and meaningfulness of the answer.
+4. **Completeness**: Answer comprehensiveness ensuring all question aspects are addressed.
+5. **References**: (Un)helpful examples, analogies, and external references (websites or links) in the answer.
+
+A subset of the dataset is shown below:
+
 ![HaluQuestQA](https://github.com/UKPLab/lfqa-hallucination/blob/master/images/haluquestqa_sample.png?raw=true)
 
 ---
