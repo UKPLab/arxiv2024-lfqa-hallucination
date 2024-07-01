@@ -234,5 +234,14 @@ done
 If you use this code or the dataset, please cite the following paper:
 
 ```
-COMING SOON
-```
+@InProceedings{smith:20xx:CONFERENCE_TITLE,
+  author    = {Smith, John},
+  title     = {My Paper Title},
+  booktitle = {Proceedings of the 20XX Conference on XXXX},
+  month     = mmm,
+  year      = {20xx},
+  address   = {Gotham City, USA},
+  publisher = {Association for XXX},
+  pages     = {XXXX--XXXX},
+  url       = {http://xxxx.xxx}
+}
