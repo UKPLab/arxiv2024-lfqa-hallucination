@@ -1,6 +1,7 @@
 ## Fine-grained Hallucination Detection and Mitigation in Long-form Question Answering
 
-This repository contains the code for 
+This repository contains the code for our arXiv 2024 paper "Fine-grained Hallucination Detection and Mitigation in Long-form Question Answering".
+We provide the code for the following tasks:
 
 * Creating an expert-annotated hallucination dataset for long-form question answering
 * Methodologies to detect and mitigate hallucinations in long-form question answers
