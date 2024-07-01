@@ -1,7 +1,5 @@
 ## Fine-grained Hallucination Detection and Mitigation in Long-form Question Answering
 
-
-
 This repository contains the code for 
 
 * Creating an expert-annotated hallucination dataset for long-form question answering
@@ -25,19 +23,7 @@ for preference optimization.
 3. `incomplete_ans_detection_data.csv`: Contains the expert annotated data for incomplete answers. This dataset is used for 
 training the incomplete answer detection model. This is used as our error feedback model in the feedback-assisted refinement approach.
 
-#### ![Static Badge](https://img.shields.io/badge/Structure-HaluQuestQA-blue)
-
-
-The dataset contains span-level annotations for errors in long-form answers as per our defined evaluation criteria:
-1. **Question misconception**: False assumptions made within the given question. 
-2. **Factuality**: Accuracy and correctness of the answer as per verifiable facts.
-3. **Relevance**: Specificity and meaningfulness of the answer.
-4. **Completeness**: Answer comprehensiveness ensuring all question aspects are addressed.
-5. **References**: (Un)helpful examples, analogies, and external references (websites or links) in the answer.
-
-A subset of the dataset is shown below:
-
-![HaluQuestQA](https://github.com/UKPLab/lfqa-hallucination/blob/master/images/haluquestqa_sample.png?raw=true)
+Further details of the datasets can be found [here](src/data/README.md).
 
 ---
 
