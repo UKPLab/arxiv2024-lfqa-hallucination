@@ -1,3 +1,5 @@
+## Data
+
 This folder contains the datasets used in the project. The datasets are structured as follows:
 
 ## ![Static Badge](https://img.shields.io/badge/Structure-HaluQuestQA-blue)
@@ -37,3 +39,16 @@ A subset of the dataset is shown below, where given a question, the preferred re
 
 > [!NOTE]  
 > This dataset is used for DPO preference optimization of the refinement model.
+
+---
+
+[![CC BY-SA 4.0][cc-by-sa-shield]][cc-by-sa]
+
+The datasets are licensed under a
+[Creative Commons Attribution-ShareAlike 4.0 International License][cc-by-sa].
+
+[![CC BY-SA 4.0][cc-by-sa-image]][cc-by-sa]
+
+[cc-by-sa]: http://creativecommons.org/licenses/by-sa/4.0/
+[cc-by-sa-image]: https://licensebuttons.net/l/by-sa/4.0/88x31.png
+[cc-by-sa-shield]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
