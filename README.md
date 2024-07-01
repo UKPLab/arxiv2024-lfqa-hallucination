@@ -27,8 +27,13 @@ training the incomplete answer detection model. This is used as our error feedba
 
 ---
 
-### Requirements
+### Getting Started
 ```bash
+# create a virtual environment (e.g. conda)
+conda create -n lfqa python=3.10
+conda activate lfqa
+
+# install the requirements
 pip install -r requirements.txt
 ```
 
