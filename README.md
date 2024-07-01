@@ -16,6 +16,10 @@ for preference optimization.
 3. `incomplete_ans_detection_data.csv`: Contains the expert annotated data for incomplete answers. This dataset is used for 
 training the incomplete answer detection model. This is used as our error feedback model in the feedback-assisted refinement approach.
 
+#### Structure of HaluQuestQA
+
+![HaluQuestQA](https://github.com/UKPLab/lfqa-hallucination/blob/master/images/haluquestqa_sample.png?raw=true)
+
 ---
 
 ### Requirements
@@ -189,6 +193,18 @@ do
   done
 done
 ```
+
+### Contact
+
+- [Rachneet Sachdeva](https://github.com/Rachneet)
+- [UKP lab](https://www.ukp.tu-darmstadt.de/)
+- [TU Darmstadt](https://www.tu-darmstadt.de/)
+
+### Disclaimer
+
+> **NOTE**
+> This repository contains experimental software and is published for the sole purpose of giving additional background
+> details on the respective publication.
 
 ### Citation
 If you use this code or the dataset, please cite the following paper:
