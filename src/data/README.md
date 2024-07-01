@@ -14,20 +14,24 @@ A subset of the dataset is shown below, where given a question and two possible 
 ---
 
 ## ![Static Badge](https://img.shields.io/badge/Structure-incomplete_ans_detection-blue)
-This dataset consists of question-answer pairs with expert span-level annotations for ``completeness`` aspect, along with justifications. The dataset is used for training the incomplete answer detection model.
+This dataset consists of question-answer pairs with expert span-level annotations for ``completeness`` aspect, along with justifications. 
 
-A subset of the dataset is shown below:
+A subset of the dataset is shown below, where the `instruction` column consists the task instruction, `input` column consists of the question-answer pair to evaluate, and the `output` column contains the sentence-level tag [Complete/ Incomplete] for the answer, along with justification for the incompleteness.
 
 ![incomplete_ans_data](https://github.com/UKPLab/lfqa-hallucination/blob/master/images/incomplete_ans_data.png?raw=true)
+
+> [!NOTE]  
+> This dataset is used to train the error-feedback model.
 
 ---
 
 ## ![Static Badge](https://img.shields.io/badge/Structure-preference_data-blue)
 The preference dataset consists of a question with two possible answers: one from humans and the other from GPT-4. 
-Expert annotators choose the better answer based on our defined evaluation criteria. The preferred responses are present in the `preferred_response` column and the rejected responses are present in the `rejected_response` column.  
+Expert annotators choose the better answer based on our defined evaluation criteria. 
 
-This dataset is used for preference optimization.
-
-A subset of the dataset is shown below:
+A subset of the dataset is shown below, where given a question, the preferred responses are present in the `preferred_response` column and the rejected responses are present in the `rejected_response` column.
 
 ![preference_data](https://github.com/UKPLab/lfqa-hallucination/blob/master/images/preference_data.png?raw=true)
+
+> [!NOTE]  
+> This dataset is used for DPO preference optimization of the refinement model.
