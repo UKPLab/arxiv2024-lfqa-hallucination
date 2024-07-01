@@ -1,3 +1,5 @@
+This folder contains the datasets used in the project. The datasets are structured as follows:
+
 ## ![Static Badge](https://img.shields.io/badge/Structure-HaluQuestQA-blue)
 
 The dataset contains span-level annotations for errors in long-form answers as per our defined evaluation criteria:
