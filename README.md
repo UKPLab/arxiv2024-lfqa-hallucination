@@ -221,14 +221,13 @@ done
 If you use this code or the dataset, please cite the following paper:
 
 ```
-@InProceedings{smith:20xx:CONFERENCE_TITLE,
-  author    = {Smith, John},
-  title     = {My Paper Title},
-  booktitle = {Proceedings of the 20XX Conference on XXXX},
-  month     = mmm,
-  year      = {20xx},
-  address   = {Gotham City, USA},
-  publisher = {Association for XXX},
-  pages     = {XXXX--XXXX},
-  url       = {http://xxxx.xxx}
+@misc{sachdeva2024finegrainedhallucinationdetectionmitigation,
+      title={Fine-grained Hallucination Detection and Mitigation in Long-form Question Answering}, 
+      author={Rachneet Sachdeva and Yixiao Song and Mohit Iyyer and Iryna Gurevych},
+      year={2024},
+      eprint={2407.11930},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2407.11930}, 
 }
+```
